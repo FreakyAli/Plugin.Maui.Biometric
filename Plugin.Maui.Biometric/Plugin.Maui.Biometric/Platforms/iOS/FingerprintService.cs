@@ -31,11 +31,6 @@ public partial class FingerprintService
         return BiometricHwStatus.Success;
     }
 
-    public async partial Task<bool> IsDeviceSecureAsync()
-    {
-        return true;
-    }
-
     public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationTokenSource? token = null)
     {
         bool outcome = false;

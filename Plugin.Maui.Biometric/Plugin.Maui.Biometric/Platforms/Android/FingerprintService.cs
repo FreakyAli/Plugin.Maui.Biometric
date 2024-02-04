@@ -8,66 +8,101 @@ namespace Plugin.Maui.Biometric;
 
 public partial class FingerprintService
 {
-    private Activity CurrentActivity => (Activity)Platform.CurrentActivity;
-
     public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
     {
-        var biometricManager = BiometricManager.From(CurrentActivity);
-
-        var strength = authStrength.Equals(AuthenticatorStrength.Strong) ?
-            BiometricManager.Authenticators.BiometricStrong :
-            BiometricManager.Authenticators.BiometricStrong;
-
-        var value = biometricManager.CanAuthenticate(strength);
-        var response = value switch
+        if (Platform.CurrentActivity is Activity activity)
         {
-            BiometricManager.BiometricSuccess => BiometricHwStatus.Success,
-            BiometricManager.BiometricErrorNoHardware => BiometricHwStatus.NoHardware,
-            BiometricManager.BiometricErrorHwUnavailable => BiometricHwStatus.Unavailable,
-            BiometricManager.BiometricErrorNoneEnrolled => BiometricHwStatus.NotEnrolled,
-            BiometricManager.BiometricErrorUnsupported => BiometricHwStatus.Unsupported,
-            _ => BiometricHwStatus.Failure,
-        };
+            var biometricManager = BiometricManager.From(activity);
 
-        return Task.FromResult(response);
+            var strength = authStrength.Equals(AuthenticatorStrength.Strong) ?
+                BiometricManager.Authenticators.BiometricStrong :
+                BiometricManager.Authenticators.BiometricWeak;
+
+            var value = biometricManager.CanAuthenticate(strength);
+            var response = value switch
+            {
+                BiometricManager.BiometricSuccess => BiometricHwStatus.Success,
+                BiometricManager.BiometricErrorNoHardware => BiometricHwStatus.NoHardware,
+                BiometricManager.BiometricErrorHwUnavailable => BiometricHwStatus.Unavailable,
+                BiometricManager.BiometricErrorNoneEnrolled => BiometricHwStatus.NotEnrolled,
+                BiometricManager.BiometricErrorUnsupported => BiometricHwStatus.Unsupported,
+                _ => BiometricHwStatus.Failure,
+            };
+
+            return Task.FromResult(response);
+        }
+        return Task.FromResult(BiometricHwStatus.Failure);
     }
 
-
-    private void ShowBiometricPrompt()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request">A request object for authentication</param>
+    /// <param name="cancellationTokenSource">A cancellation token in case if you want to cancel your Authentication,
+    /// this method handles the dispose on completion and you do not need to do it yourself</param>
+    /// <returns></returns>
+    public partial async Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationTokenSource? cancellationTokenSource = null)
     {
-
-
-
-    }
-
-    public async partial Task<bool> IsDeviceSecureAsync()
-    {
-        return true;
-    }
-
-    public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationTokenSource? token = null)
-    {
-        var executor = ContextCompat.GetMainExecutor(CurrentActivity);
-
-        var biometricPrompt = new BiometricPrompt(CurrentActivity, executor, new AuthCallback());
-
-
-
-        var promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                .SetTitle("Biometric login for my app")
-                .SetSubtitle("Log in using your biometric credential")
-                .SetAllowedAuthenticators(
-                    BiometricManager.Authenticators.BiometricStrong |
-                    BiometricManager.Authenticators.DeviceCredential)
-                .Build();
-
-
-        var response = new AuthenticationResponse()
+        // If the user does not provide a Token source adding a default one.
+        cancellationTokenSource ??= new CancellationTokenSource();
+        try
         {
+            if (Platform.CurrentActivity is Activity activity)
+            {
 
-        };
-        return Task.FromResult(response);
+                var strength = request.AuthStrength.Equals(AuthenticatorStrength.Strong) ?
+                   BiometricManager.Authenticators.BiometricStrong :
+                   BiometricManager.Authenticators.BiometricWeak;
+
+                var allInfo = new BiometricPrompt.PromptInfo.Builder()
+                        .SetTitle(request.Title)
+                        .SetSubtitle(request.Subtitle)
+                        .SetNegativeButtonText(request.NegativeText)
+                        .SetDescription(request.Description);
+
+                if (request.AllowPasswordAuth)
+                {
+                    allInfo.SetAllowedAuthenticators(strength | BiometricManager.Authenticators.DeviceCredential);
+                }
+                else
+                {
+                    allInfo.SetAllowedAuthenticators(strength);
+                }
+                var promptInfo = allInfo.Build();
+
+                var executor = ContextCompat.GetMainExecutor(activity);
+                var authCallback = new AuthCallback()
+                {
+                    Response = new TaskCompletionSource<AuthenticationResponse>()
+                };
+                var biometricPrompt = new BiometricPrompt(activity, executor, authCallback);
+
+                await using (cancellationTokenSource?.Token.Register(() => biometricPrompt.CancelAuthentication()))
+                {
+                    biometricPrompt.Authenticate(promptInfo);
+                    var response = await authCallback.Response.Task;
+                    return response;
+                }
+            }
+            //This case should be logically unreachable but adding this just
+            //In case for some reason Platform's CurrentActivity decides to flip with me.
+            return new AuthenticationResponse
+            {
+                Status = BiometricResponseStatus.Failure,
+                ErrorMsg = "Your Platform.CurrentActivity either returned null or is not of type `AndroidX.AppCompat.App.AppCompatActivity`, ensure your Activity is of the right type and that its not null"
+            };
+        }
+        catch (Exception ex)
+        {
+            return new AuthenticationResponse
+            {
+                Status = BiometricResponseStatus.Failure,
+                ErrorMsg = ex.Message + ex.StackTrace
+            };
+        }
+        finally
+        {
+            cancellationTokenSource.Dispose();
+        }
     }
-
 }
-

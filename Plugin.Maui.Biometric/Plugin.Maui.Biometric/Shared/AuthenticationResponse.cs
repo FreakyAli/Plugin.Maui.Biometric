@@ -4,6 +4,15 @@ public class AuthenticationResponse
 {
     public BiometricResponseStatus Status { get; set; }
 
-    public string ErrorMsg { get; set; } 
+    public AuthenticationType AuthenticationType { get; set; }
 
-}   
+    public string ErrorMsg { get; set; }
+
+}
+
+public enum AuthenticationType
+{
+    Unknown,
+    DeviceCreds,
+    Biometric
+}
