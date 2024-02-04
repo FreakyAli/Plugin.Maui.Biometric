@@ -17,7 +17,7 @@
 		<Authors>FreakyAli</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Description>A Biometric plugin for .NET MAUI</Description>
-		<PackageIcon>auth_icon.png</PackageIcon>
+		<PackageIcon>auth_icon.jpg</PackageIcon>
 		<RepositoryUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</PackageProjectUrl>
 		<PackageTags>Biometric FaceID Fingerprint</PackageTags>
@@ -46,7 +46,7 @@
 		<None Remove="Platforms\Android\" />
 		<None Remove="Platforms\iOS\" />
 		<None Remove="Shared\" />
-		<None Include="auth_icon.png" Pack="true" Visible="false" PackagePath="" />
+		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
 	    <None Include="readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
