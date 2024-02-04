@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net8.0-android;net8.0-ios</TargetFrameworks>
+		<UseMaui>true</UseMaui>
+		<Nullable>disable</Nullable>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+		<AssemblyVersion>0.0.1</AssemblyVersion>
+		<AssemblyFileVersion>0.0.1</AssemblyFileVersion>
+		<Version>0.0.1-pre</Version>
+		<NeutralLanguage>en</NeutralLanguage>
+		<!--Version of C# to use -->
+		<PackageId>Plugin.Maui.Biometric</PackageId>
+		<LangVersion>latest</LangVersion>
+		<Authors>FreakyAli</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Description>A Biometric plugin for .NET MAUI</Description>
+		<PackageIcon>auth_icon.jpg</PackageIcon>
+		<RepositoryUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</PackageProjectUrl>
+		<PackageTags>Biometric FaceID Fingerprint</PackageTags>
+		<PackageReleaseNotes>An intial release for biometric authentication with .NET MAUI</PackageReleaseNotes>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<Copyright>Copyright 2024</Copyright>
+		<PackOnBuild>true</PackOnBuild>
+		<SynchReleaseVersion>false</SynchReleaseVersion>
+		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+		<NoWarn>CS8618</NoWarn>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
+		<Configurations>Release;Debug</Configurations>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
+		<CreatePackage>false</CreatePackage>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<LangVersion>latest</LangVersion>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
+	  <CreatePackage>false</CreatePackage>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Remove="Platforms\Android\" />
+		<None Remove="Platforms\iOS\" />
+		<None Remove="Shared\" />
+		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
+	    <None Include="readme.md" Pack="true" Visible="false" PackagePath="" />
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Platforms\Android\" />
+		<Folder Include="Platforms\iOS\" />
+		<Folder Include="Shared\" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.18" />
+		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.3.0.2" />
+	</ItemGroup>
+</Project>
