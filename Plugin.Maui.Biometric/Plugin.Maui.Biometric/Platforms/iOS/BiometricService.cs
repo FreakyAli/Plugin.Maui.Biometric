@@ -8,9 +8,9 @@ internal partial class BiometricService
     public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
     {
         var localAuthContext = new LAContext();
-        if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthentication, out var error))
+        if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthentication, out var _))
         {
-            if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var authError))
+            if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))
             {
                 if (localAuthContext.BiometryType == LABiometryType.FaceId)
                 {
@@ -26,21 +26,18 @@ internal partial class BiometricService
         return Task.FromResult(BiometricHwStatus.Failure);
     }
 
-    public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
+    public async partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
     {
         var response = new AuthenticationResponse();
         var context = new LAContext();
-        if (context.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out NSError AuthError))
+        LAPolicy policy = request.AllowPasswordAuth ? LAPolicy.DeviceOwnerAuthentication : LAPolicy.DeviceOwnerAuthenticationWithBiometrics;
+        if (context.CanEvaluatePolicy(policy, out NSError _))
         {
-            var replyHandler = new LAContextReplyHandler((success, error) =>
-            {
-                response.Status = success ? BiometricResponseStatus.Success : BiometricResponseStatus.Failure;
-                response.AuthenticationType = AuthenticationType.Unknown;
-                response.ErrorMsg = error.ToString();
-            });
-            //This will call both TouchID and FaceId 
-            context.EvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, request.Title, replyHandler);
+            var callback = await context.EvaluatePolicyAsync(policy, request.Title);
+            response.Status = callback.Item1 ? BiometricResponseStatus.Success : BiometricResponseStatus.Failure;
+            response.AuthenticationType = AuthenticationType.Unknown;
+            response.ErrorMsg = callback.Item2?.ToString();
         };
-        return Task.FromResult(response);
+        return response;
     }
 }
