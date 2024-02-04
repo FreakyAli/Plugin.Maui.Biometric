@@ -1,12 +1,34 @@
 ﻿using System;
+using Foundation;
+using LocalAuthentication;
+
 namespace Plugin.Maui.Biometric;
 
-public partial class FingerprintService 
+public partial class FingerprintService
 {
-    public async partial Task<BiometricStatus> GetAuthStatusAsync()
+    public async partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
     {
+        //var localAuthContext = new LAContext();
+        //NSError AuthError;
 
-        return BiometricStatus.Success;
+        //if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthentication, out AuthError))
+        //{
+        //    if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out AuthError))
+        //    {
+        //        if (localAuthContext.BiometryType == LABiometryType.FaceId)
+        //        {
+        //            return "FaceId";
+        //        }
+
+        //        return "TouchId";
+        //    }
+
+        //    return "PassCode";
+        //}
+
+        //return "None";
+
+        return BiometricHwStatus.Success;
     }
 
     public async partial Task<bool> IsDeviceSecureAsync()
@@ -14,8 +36,33 @@ public partial class FingerprintService
         return true;
     }
 
-    public async partial Task<bool> AuthenticateAsync(bool canUseAlternateAuth = true, CancellationTokenSource? token = null)
+    public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationTokenSource? token = null)
     {
-        return true;
+        bool outcome = false;
+        var tcs = new TaskCompletionSource<bool>();
+
+        var context = new LAContext();
+        if (context.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out NSError AuthError))
+        {
+            var replyHandler = new LAContextReplyHandler((success, error) =>
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (success)
+                    {
+                        outcome = true;
+                    }
+                    else
+                    {
+                        outcome = false;
+                    }
+                    tcs.SetResult(outcome);
+                });
+            });
+            //This will call both TouchID and FaceId 
+            context.EvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, "Login with touch ID", replyHandler);
+        };
+        return Task.FromResult(new AuthenticationResponse(
+            ));
     }
 }

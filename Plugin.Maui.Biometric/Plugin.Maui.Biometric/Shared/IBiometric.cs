@@ -4,8 +4,7 @@ public interface IBiometric
 {
     Task<bool> IsDeviceSecureAsync();
 
-    Task<BiometricStatus> GetAuthStatusAsync();
+    Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength = AuthenticatorStrength.Strong);
 
-    Task<bool> AuthenticateAsync(bool canUseAlternateAuth = true, CancellationTokenSource? token = null);
-
+    Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationTokenSource? token = null);
 }
