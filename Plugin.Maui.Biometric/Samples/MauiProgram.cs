@@ -1,4 +1,7 @@
-﻿namespace Samples;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Plugin.Maui.Biometric;
+
+namespace Samples;
 
 public static class MauiProgram
 {
@@ -13,6 +16,7 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
+		builder.Services.AddSingleton<IBiometric>(BiometricAuthenticationService.Default);
 		return builder.Build();
 	}
 }

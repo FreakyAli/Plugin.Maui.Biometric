@@ -6,7 +6,7 @@ using Activity = AndroidX.AppCompat.App.AppCompatActivity;
 
 namespace Plugin.Maui.Biometric;
 
-public partial class FingerprintService
+internal partial class BiometricService
 {
     public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
     {
@@ -38,13 +38,10 @@ public partial class FingerprintService
     /// 
     /// </summary>
     /// <param name="request">A request object for authentication</param>
-    /// <param name="cancellationTokenSource">A cancellation token in case if you want to cancel your Authentication,
-    /// this method handles the dispose on completion and you do not need to do it yourself</param>
+    /// <param name="token">A cancellation token in case if you want to cancel your Authentication</param>
     /// <returns></returns>
-    public partial async Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationTokenSource? cancellationTokenSource = null)
+    public partial async Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
     {
-        // If the user does not provide a Token source adding a default one.
-        cancellationTokenSource ??= new CancellationTokenSource();
         try
         {
             if (Platform.CurrentActivity is Activity activity)
@@ -77,7 +74,7 @@ public partial class FingerprintService
                 };
                 var biometricPrompt = new BiometricPrompt(activity, executor, authCallback);
 
-                await using (cancellationTokenSource?.Token.Register(() => biometricPrompt.CancelAuthentication()))
+                await using (token.Register(() => biometricPrompt.CancelAuthentication()))
                 {
                     biometricPrompt.Authenticate(promptInfo);
                     var response = await authCallback.Response.Task;
@@ -99,10 +96,6 @@ public partial class FingerprintService
                 Status = BiometricResponseStatus.Failure,
                 ErrorMsg = ex.Message + ex.StackTrace
             };
-        }
-        finally
-        {
-            cancellationTokenSource.Dispose();
         }
     }
 }
