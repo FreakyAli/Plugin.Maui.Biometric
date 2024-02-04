@@ -10,7 +10,7 @@ internal partial class BiometricService : IBiometric
 public class BiometricAuthenticationService
 {
     private static readonly Lazy<IBiometric> defaultImpl =
-        new(()=>new BiometricService(), LazyThreadSafetyMode.PublicationOnly);
+        new(() => new BiometricService(), LazyThreadSafetyMode.PublicationOnly);
 
     public static IBiometric Default
     {

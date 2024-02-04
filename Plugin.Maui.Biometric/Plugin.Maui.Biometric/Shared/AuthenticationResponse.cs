@@ -6,6 +6,5 @@ public class AuthenticationResponse
 
     public AuthenticationType AuthenticationType { get; set; }
 
-    public string? ErrorMsg { get; set; }
-
+    public string ErrorMsg { get; set; }
 }
