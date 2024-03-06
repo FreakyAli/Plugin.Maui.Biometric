@@ -9,7 +9,7 @@
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
 		<AssemblyVersion>0.0.1</AssemblyVersion>
 		<AssemblyFileVersion>0.0.1</AssemblyFileVersion>
-		<Version>0.0.1-pre</Version>
+		<Version>0.0.1</Version>
 		<NeutralLanguage>en</NeutralLanguage>
 		<!--Version of C# to use -->
 		<PackageId>Plugin.Maui.Biometric</PackageId>
@@ -20,7 +20,7 @@
 		<PackageIcon>auth_icon.jpg</PackageIcon>
 		<RepositoryUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</PackageProjectUrl>
-		<PackageTags>Biometric FaceID Fingerprint</PackageTags>
+		<PackageTags>Biometric FaceID Fingerprint .NET MAUI MAUI</PackageTags>
 		<PackageReleaseNotes>An intial release for biometric authentication with .NET MAUI</PackageReleaseNotes>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<Copyright>Copyright 2024</Copyright>
