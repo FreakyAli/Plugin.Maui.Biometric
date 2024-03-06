@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios</TargetFrameworks>
+		<TargetFrameworks>.net8.0;net8.0-android;net8.0-ios</TargetFrameworks>
 		<UseMaui>true</UseMaui>
 		<Nullable>disable</Nullable>
 		<SingleProject>true</SingleProject>
@@ -20,7 +20,7 @@
 		<PackageIcon>auth_icon.jpg</PackageIcon>
 		<RepositoryUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</PackageProjectUrl>
-		<PackageTags>Biometric FaceID Fingerprint .NET MAUI MAUI</PackageTags>
+		<PackageTags>Biometric FaceID Fingerprint .NET MAUI</PackageTags>
 		<PackageReleaseNotes>An intial release for biometric authentication with .NET MAUI</PackageReleaseNotes>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<Copyright>Copyright 2024</Copyright>

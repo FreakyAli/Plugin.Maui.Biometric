@@ -7,13 +7,17 @@ internal partial class BiometricService : IBiometric
     public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength = AuthenticatorStrength.Strong);
 }
 
-public class BiometricAuthenticationService
+#if NET && !ANDROID && !IOS
+internal partial class BiometricService : IBiometric
 {
-    private static readonly Lazy<IBiometric> defaultImpl =
-        new(() => new BiometricService(), LazyThreadSafetyMode.PublicationOnly);
-
-    public static IBiometric Default
+    public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
     {
-        get => defaultImpl.Value;
+        throw new NotImplementedException();
+    }
+
+    public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength = AuthenticatorStrength.Strong)
+    {
+        throw new NotImplementedException();
     }
 }
+#endif
