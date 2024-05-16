@@ -1,5 +1,6 @@
 ﻿using Foundation;
 using LocalAuthentication;
+using Plugin.Maui.Biometric.Shared;
 
 namespace Plugin.Maui.Biometric;
 
@@ -39,5 +40,20 @@ internal partial class BiometricService
             response.ErrorMsg = callback.Item2?.ToString();
         };
         return response;
+    }
+
+    public partial Task<BiometricType> GetBiometricTypeAsync()
+    {
+        var localAuthContext = new LAContext();
+        if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))
+        {
+            return Task.FromResult(localAuthContext.BiometryType switch
+            {
+                LABiometryType.FaceId => BiometricType.Face,
+                LABiometryType.TouchId => BiometricType.Fingerprint,
+                _ => BiometricType.None
+            });
+        }
+        return Task.FromResult(BiometricType.None);
     }
 }

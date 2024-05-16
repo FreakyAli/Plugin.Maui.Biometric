@@ -14,6 +14,8 @@ public partial class MainPage : ContentPage
 
     private async void OnCounterClicked(object sender, EventArgs e)
     {
+        var hwType = await biometric.GetBiometricTypeAsync();
+
         var result = await biometric.GetAuthenticationStatusAsync();
         if (result == BiometricHwStatus.Success)
         {
