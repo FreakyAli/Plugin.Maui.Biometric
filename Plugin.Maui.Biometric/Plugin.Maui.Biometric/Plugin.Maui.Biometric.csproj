@@ -45,14 +45,12 @@
 	<ItemGroup>
 		<None Remove="Platforms\Android\" />
 		<None Remove="Platforms\iOS\" />
-		<None Remove="Shared\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
 	    <None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Platforms\Android\" />
 		<Folder Include="Platforms\iOS\" />
-		<Folder Include="Shared\" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
 		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.18" />
