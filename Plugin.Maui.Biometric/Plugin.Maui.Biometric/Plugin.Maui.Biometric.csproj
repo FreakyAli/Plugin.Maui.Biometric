@@ -7,9 +7,9 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
-		<AssemblyVersion>0.0.1</AssemblyVersion>
-		<AssemblyFileVersion>0.0.1</AssemblyFileVersion>
-		<Version>0.0.1</Version>
+		<AssemblyVersion>0.0.2</AssemblyVersion>
+		<AssemblyFileVersion>0.0.2</AssemblyFileVersion>
+		<Version>0.0.2-pre</Version>
 		<NeutralLanguage>en</NeutralLanguage>
 		<!--Version of C# to use -->
 		<PackageId>Plugin.Maui.Biometric</PackageId>
@@ -21,8 +21,8 @@
 		<RepositoryUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</PackageProjectUrl>
 		<PackageTags>Biometric FaceID Fingerprint .NET MAUI</PackageTags>
-		<PackageReleaseNotes>An intial release for biometric authentication with .NET MAUI</PackageReleaseNotes>
-		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<PackageReleaseNotes>Biometric authentication with .NET MAUI</PackageReleaseNotes>
+		<PackageReadmeFile>Readme.md</PackageReadmeFile>
 		<Copyright>Copyright 2024</Copyright>
 		<PackOnBuild>true</PackOnBuild>
 		<SynchReleaseVersion>false</SynchReleaseVersion>
@@ -47,7 +47,7 @@
 		<None Remove="Platforms\iOS\" />
 		<None Remove="Shared\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
-	    <None Include="readme.md" Pack="true" Visible="false" PackagePath="" />
+	    <None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Platforms\Android\" />
