@@ -1,11 +1,8 @@
-﻿using System;
-namespace Plugin.Maui.Biometric
+﻿namespace Plugin.Maui.Biometric;
+public enum BiometricType
 {
-    public enum BiometricType
-    {
-        None,
-        Fingerprint,
-        Face
-    }
+    None,
+    Fingerprint,
+    Face
 }
 

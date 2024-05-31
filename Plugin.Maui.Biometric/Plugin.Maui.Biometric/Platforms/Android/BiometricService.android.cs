@@ -3,9 +3,7 @@ using Platform = Microsoft.Maui.ApplicationModel.Platform;
 using AndroidX.Core.Content;
 using AndroidX.Biometric;
 using Activity = AndroidX.AppCompat.App.AppCompatActivity;
-using static AndroidX.Core.App.FrameMetricsAggregator;
 using Android.Content.PM;
-using Plugin.Maui.Biometric.Shared;
 
 namespace Plugin.Maui.Biometric;
 
@@ -97,7 +95,7 @@ internal partial class BiometricService
         }
     }
 
-    public partial Task<BiometricType> GetBiometricTypeAsync()
+    public partial Task<BiometricType> GetEnrolledBiometricTypeAsync()
     {
         if (Platform.CurrentActivity is Activity activity)
         {
@@ -108,13 +106,14 @@ internal partial class BiometricService
             {
                 // Determine the type of biometric hardware available
                 var packageManager = activity.PackageManager;
-                if (packageManager.HasSystemFeature(PackageManager.FeatureFingerprint))
+                if(packageManager.HasSystemFeature(PackageManager.FeatureFingerprint))
                 {
                     return Task.FromResult(BiometricType.Fingerprint);
                 }
-                else if (packageManager.HasSystemFeature(PackageManager.FeatureFace))
+                else if (OperatingSystem.IsAndroidVersionAtLeast(29))
                 {
-                    return Task.FromResult(BiometricType.Face);
+                    if (packageManager.HasSystemFeature(PackageManager.FeatureFace))
+                        return Task.FromResult(BiometricType.Face);
                 }
             }
         }

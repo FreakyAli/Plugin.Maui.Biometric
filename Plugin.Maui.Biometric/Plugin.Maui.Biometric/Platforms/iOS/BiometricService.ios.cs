@@ -1,6 +1,5 @@
 ﻿using Foundation;
 using LocalAuthentication;
-using Plugin.Maui.Biometric.Shared;
 
 namespace Plugin.Maui.Biometric;
 
@@ -42,7 +41,7 @@ internal partial class BiometricService
         return response;
     }
 
-    public partial Task<BiometricType> GetBiometricTypeAsync()
+    public partial Task<BiometricType> GetEnrolledBiometricTypeAsync()
     {
         var localAuthContext = new LAContext();
         if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))

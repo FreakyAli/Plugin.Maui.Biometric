@@ -1,6 +1,4 @@
-﻿using Plugin.Maui.Biometric.Shared;
-
-namespace Plugin.Maui.Biometric;
+﻿namespace Plugin.Maui.Biometric;
 #if NET && !ANDROID && !IOS
 internal partial class BiometricService : IBiometric
 {
@@ -9,12 +7,12 @@ internal partial class BiometricService : IBiometric
         throw new NotImplementedException();
     }
 
-    public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength = AuthenticatorStrength.Strong)
+    public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
     {
         throw new NotImplementedException();
     }
 
-    public partial Task<BiometricType> GetBiometricTypeAsync()
+    public partial Task<BiometricType> GetEnrolledBiometricTypeAsync()
     {
         throw new NotImplementedException();
     }
