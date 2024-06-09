@@ -1,6 +1,4 @@
-﻿using Plugin.Maui.Biometric.Shared;
-
-namespace Plugin.Maui.Biometric;
+﻿namespace Plugin.Maui.Biometric;
 
 internal partial class BiometricService : IBiometric
 {
@@ -8,5 +6,5 @@ internal partial class BiometricService : IBiometric
 
     public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token);
 
-    public partial Task<BiometricType> GetBiometricTypeAsync();
+    public partial Task<List<BiometricType>> GetEnrolledBiometricTypesAsync();
 }
