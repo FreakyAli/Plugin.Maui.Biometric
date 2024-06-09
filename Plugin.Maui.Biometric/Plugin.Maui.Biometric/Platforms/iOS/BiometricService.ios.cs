@@ -41,18 +41,27 @@ internal partial class BiometricService
         return response;
     }
 
-    public partial Task<BiometricType> GetEnrolledBiometricTypeAsync()
+    public partial Task<List<BiometricType>> GetEnrolledBiometricTypesAsync()
     {
         var localAuthContext = new LAContext();
+        var availableOptions = new List<BiometricType>();
         if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))
         {
-            return Task.FromResult(localAuthContext.BiometryType switch
+            var isFace = localAuthContext.BiometryType == LABiometryType.FaceId;
+            var isFingerprint = localAuthContext.BiometryType == LABiometryType.TouchId;
+            if (isFace)
             {
-                LABiometryType.FaceId => BiometricType.Face,
-                LABiometryType.TouchId => BiometricType.Fingerprint,
-                _ => BiometricType.None
-            });
+                availableOptions.Add(BiometricType.Face);
+            }
+            if (isFingerprint)
+            {
+                availableOptions.Add(BiometricType.Fingerprint);
+            }
+            if (!isFace && !isFingerprint)
+            {
+                availableOptions.Add(BiometricType.None);
+            }
         }
-        return Task.FromResult(BiometricType.None);
+        return Task.FromResult(availableOptions);
     }
 }

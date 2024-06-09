@@ -6,5 +6,5 @@ internal partial class BiometricService : IBiometric
 
     public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token);
 
-    public partial Task<BiometricType> GetEnrolledBiometricTypeAsync();
+    public partial Task<List<BiometricType>> GetEnrolledBiometricTypesAsync();
 }

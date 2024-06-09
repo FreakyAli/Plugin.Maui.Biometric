@@ -95,28 +95,34 @@ internal partial class BiometricService
         }
     }
 
-    public partial Task<BiometricType> GetEnrolledBiometricTypeAsync()
+    public partial Task<List<BiometricType>> GetEnrolledBiometricTypesAsync()
     {
+        var availableOptions = new List<BiometricType>();
         if (Platform.CurrentActivity is Activity activity)
         {
             var biometricManager = BiometricManager.From(activity);
             var canAuthenticate = biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricWeak);
-
             if (canAuthenticate == BiometricManager.BiometricSuccess)
             {
                 // Determine the type of biometric hardware available
                 var packageManager = activity.PackageManager;
-                if(packageManager.HasSystemFeature(PackageManager.FeatureFingerprint))
+                var isFingerprint = packageManager.HasSystemFeature(PackageManager.FeatureFingerprint);
+                var isFace = OperatingSystem.IsAndroidVersionAtLeast(29) && packageManager.HasSystemFeature(PackageManager.FeatureFace);
+
+                if (isFace)
                 {
-                    return Task.FromResult(BiometricType.Fingerprint);
+                    availableOptions.Add(BiometricType.Face);
                 }
-                else if (OperatingSystem.IsAndroidVersionAtLeast(29))
+                if (isFingerprint)
                 {
-                    if (packageManager.HasSystemFeature(PackageManager.FeatureFace))
-                        return Task.FromResult(BiometricType.Face);
+                    availableOptions.Add(BiometricType.Fingerprint);
+                }
+                if (!isFace && !isFingerprint)
+                {
+                    availableOptions.Add(BiometricType.None);
                 }
             }
         }
-        return Task.FromResult(BiometricType.None);
+        return Task.FromResult(availableOptions);
     }
 }

@@ -12,7 +12,7 @@ internal partial class BiometricService : IBiometric
         throw new NotImplementedException();
     }
 
-    public partial Task<BiometricType> GetEnrolledBiometricTypeAsync()
+    public partial Task<List<BiometricType>> GetEnrolledBiometricTypesAsync()
     {
         throw new NotImplementedException();
     }
