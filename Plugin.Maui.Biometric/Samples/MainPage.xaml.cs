@@ -14,8 +14,9 @@ public partial class MainPage : ContentPage
 
     private async void OnCounterClicked(object sender, EventArgs e)
     {
-        //get enrolled biometric type
-        var enrolledType = await biometric.GetEnrolledBiometricTypeAsync();
+        //get a list of enrolled biometric types
+        var enrolledTypes = await biometric.GetEnrolledBiometricTypesAsync();
+
         //get current status of the hardware
         var result = await biometric.GetAuthenticationStatusAsync(AuthenticatorStrength.Weak);
         if (result == BiometricHwStatus.Success)
