@@ -64,4 +64,6 @@ internal partial class BiometricService
         }
         return Task.FromResult(availableOptions);
     }
+    
+    private static partial bool GetIsPlatformSupported() => true;
 }
