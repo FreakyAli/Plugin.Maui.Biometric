@@ -1,4 +1,4 @@
-﻿namespace Plugin.Maui.Biometric;
+namespace Plugin.Maui.Biometric;
 
 public interface IBiometric
 {

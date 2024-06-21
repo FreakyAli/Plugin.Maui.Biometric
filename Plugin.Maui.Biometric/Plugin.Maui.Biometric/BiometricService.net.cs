@@ -1,4 +1,4 @@
-﻿namespace Plugin.Maui.Biometric;
+namespace Plugin.Maui.Biometric;
 #if NET && !ANDROID && !IOS
 internal partial class BiometricService : IBiometric
 {
@@ -16,7 +16,7 @@ internal partial class BiometricService : IBiometric
     {
         throw new NotImplementedException();
     }
-
+    
     private static partial bool GetIsPlatformSupported() => false;
 }
 #endif
