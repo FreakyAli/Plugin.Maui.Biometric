@@ -25,13 +25,13 @@ public partial class MainPage : ContentPage
             {
                 Title = "A good title",
                 Subtitle = "An equally good subtitle",
-                NegativeText= "Cancel",
+                NegativeText = "Cancel",
                 Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
                 AllowPasswordAuth = false,
             };
             // biometric authentication
             var data = await biometric.AuthenticateAsync(req,
-                CancellationToken.None); // You can also pass a valid token and use it to cancel this tsak 
+                CancellationToken.None); // You can also pass a valid token and use it to cancel this tsak
 
             Console.Write(data);
         }

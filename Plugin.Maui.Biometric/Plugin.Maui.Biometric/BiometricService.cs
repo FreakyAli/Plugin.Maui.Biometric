@@ -9,6 +9,6 @@ internal partial class BiometricService : IBiometric
     public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token);
 
     public partial Task<List<BiometricType>> GetEnrolledBiometricTypesAsync();
-    
+
     private static partial bool GetIsPlatformSupported();
 }

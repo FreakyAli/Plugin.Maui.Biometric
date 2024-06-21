@@ -2,6 +2,6 @@
 
 public enum BiometricResponseStatus
 {
-	Failure,
-	Success
+    Failure,
+    Success
 }

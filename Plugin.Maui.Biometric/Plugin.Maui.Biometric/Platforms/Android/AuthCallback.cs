@@ -23,7 +23,7 @@ internal class AuthCallback : BiometricPrompt.AuthenticationCallback
             ErrorMsg = string.Empty
         });
     }
-    
+
     public override void OnAuthenticationError(int errorCode, ICharSequence errString)
     {
         base.OnAuthenticationError(errorCode, errString);

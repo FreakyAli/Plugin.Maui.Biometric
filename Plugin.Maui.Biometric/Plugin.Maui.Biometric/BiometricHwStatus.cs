@@ -6,11 +6,11 @@
 /// </summary>
 public enum BiometricHwStatus
 {
-	NoHardware,
-	Unavailable,
-	Unsupported,
-	NotEnrolled,
-	LockedOut,
+    NoHardware,
+    Unavailable,
+    Unsupported,
+    NotEnrolled,
+    LockedOut,
     Success,
     Failure
 }
