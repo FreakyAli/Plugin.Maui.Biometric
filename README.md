@@ -21,6 +21,10 @@ A biometric plugin for .NET MAUI, for Android and iOS
 ### Like what you saw? Want to keep this repo alive?
 [![](https://miro.medium.com/max/600/0*wrBJU05A3BULKcWA.gif)](https://www.buymeacoffee.com/FreakyAli)
 
+### Note
+
+Community PR's for the other platforms are welcome but I will personally not be able to maintain the other platforms, due to shortage of time and unavailablity of devices for testing.
+
 ## Introduction:
 
 Add the following permissions for Android and iOS:

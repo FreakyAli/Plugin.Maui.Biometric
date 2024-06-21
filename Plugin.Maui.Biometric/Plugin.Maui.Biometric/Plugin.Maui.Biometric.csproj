@@ -9,14 +9,14 @@
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
 		<AssemblyVersion>0.0.2</AssemblyVersion>
 		<AssemblyFileVersion>0.0.2</AssemblyFileVersion>
-		<Version>0.0.2-pre</Version>
+		<Version>0.0.2</Version>
 		<NeutralLanguage>en</NeutralLanguage>
 		<!--Version of C# to use -->
 		<PackageId>Plugin.Maui.Biometric</PackageId>
 		<LangVersion>latest</LangVersion>
 		<Authors>FreakyAli</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<Description>A Biometric plugin for .NET MAUI</Description>
+		<Description>A Biometric plug-in for .NET MAUI</Description>
 		<PackageIcon>auth_icon.jpg</PackageIcon>
 		<RepositoryUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</PackageProjectUrl>
@@ -40,13 +40,13 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
-	  <CreatePackage>false</CreatePackage>
+		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Remove="Platforms\Android\" />
 		<None Remove="Platforms\iOS\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
-	    <None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
+		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Platforms\Android\" />
