@@ -22,8 +22,8 @@ jobs:
           $version="${{github.ref_name}}".TrimStart("v")
           "version-without-v=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
       - name: Pack
-        run: dotnet pack src\Plugin.Maui.Biometric.sln -c Release -p:PackageVersion=${{ steps.get_version.outputs.version-without-v }}
+        run: dotnet pack Plugin.Maui.Biometric\Plugin.Maui.Biometric.sln -c Release -p:PackageVersion=${{ steps.get_version.outputs.version-without-v }}
       - name: Push
-        run: dotnet nuget push src\Plugin.Maui.Biometric\bin\Release\Plugin.Maui.Feature.${{ steps.get_version.outputs.version-without-v }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push Plugin.Maui.Biometric\Plugin.Maui.Biometric\bin\Release\Plugin.Maui.Feature.${{ steps.get_version.outputs.version-without-v }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
         env:
           GITHUB_TOKEN: ${{ secrets.NUGET_API_KEY }}
