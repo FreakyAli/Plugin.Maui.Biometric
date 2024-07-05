@@ -16,4 +16,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: dotnet build src\Plugin.Maui.Biometric.sln -c Release
+      run: dotnet build Plugin.Maui.Biometric\Plugin.Maui.Biometric.sln -c Release
