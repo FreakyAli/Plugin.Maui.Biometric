@@ -12,7 +12,7 @@ internal partial class BiometricService
         {
             if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))
             {
-                if (localAuthContext.BiometryType == LABiometryType.FaceId)
+                if (localAuthContext.BiometryType != LABiometryType.None)
                 {
                     return Task.FromResult(BiometricHwStatus.Success);
                 }
