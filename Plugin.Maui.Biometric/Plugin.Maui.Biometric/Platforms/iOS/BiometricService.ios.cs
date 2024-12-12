@@ -30,6 +30,10 @@ internal partial class BiometricService
     {
         var response = new AuthenticationResponse();
         var context = new LAContext();
+        if (request.AllowPasswordAuth is false)
+        {
+            context.LocalizedFallbackTitle = string.Empty;
+        }
         LAPolicy policy = request.AllowPasswordAuth ? LAPolicy.DeviceOwnerAuthentication : LAPolicy.DeviceOwnerAuthenticationWithBiometrics;
         if (context.CanEvaluatePolicy(policy, out NSError _))
         {
