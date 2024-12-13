@@ -4,6 +4,7 @@ using AndroidX.Core.Content;
 using AndroidX.Biometric;
 using Activity = AndroidX.AppCompat.App.AppCompatActivity;
 using Android.Content.PM;
+using System.Diagnostics;
 
 namespace Plugin.Maui.Biometric;
 
@@ -95,13 +96,18 @@ internal partial class BiometricService
         }
     }
 
-    public partial Task<List<BiometricType>> GetEnrolledBiometricTypesAsync()
+    public partial Task<BiometricType[]> GetEnrolledBiometricTypesAsync()
     {
-        var availableOptions = new List<BiometricType>();
+        var availableOptions = new BiometricType[2];
         if (Platform.CurrentActivity is Activity activity)
         {
             var biometricManager = BiometricManager.From(activity);
             var canAuthenticate = biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricWeak);
+            if(canAuthenticate == BiometricManager.BiometricErrorNoneEnrolled)
+            {
+                availableOptions[0] = BiometricType.None;
+                availableOptions[0] = BiometricType.None;
+            }
             if (canAuthenticate == BiometricManager.BiometricSuccess)
             {
                 // Determine the type of biometric hardware available
@@ -111,17 +117,20 @@ internal partial class BiometricService
 
                 if (isFace)
                 {
-                    availableOptions.Add(BiometricType.Face);
+                    availableOptions[0] = BiometricType.Face;
                 }
                 if (isFingerprint)
                 {
-                    availableOptions.Add(BiometricType.Fingerprint);
+                    availableOptions[1] = BiometricType.Fingerprint;
                 }
                 if (!isFace && !isFingerprint)
                 {
-                    availableOptions.Add(BiometricType.None);
+                    availableOptions[0] = BiometricType.None;
+                    availableOptions[1] = BiometricType.None;
                 }
             }
+            Debug.WriteLine(availableOptions[0]);
+            Debug.WriteLine(availableOptions[1]);
         }
         return Task.FromResult(availableOptions);
     }
