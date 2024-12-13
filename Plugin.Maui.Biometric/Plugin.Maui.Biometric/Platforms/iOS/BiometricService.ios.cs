@@ -1,4 +1,4 @@
-﻿using Foundation;
+using Foundation;
 using LocalAuthentication;
 
 namespace Plugin.Maui.Biometric;
@@ -12,7 +12,7 @@ internal partial class BiometricService
         {
             if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))
             {
-                if (localAuthContext.BiometryType == LABiometryType.FaceId)
+                if (localAuthContext.BiometryType != LABiometryType.None)
                 {
                     return Task.FromResult(BiometricHwStatus.Success);
                 }
@@ -30,6 +30,10 @@ internal partial class BiometricService
     {
         var response = new AuthenticationResponse();
         var context = new LAContext();
+        if (request.AllowPasswordAuth is false)
+        {
+            context.LocalizedFallbackTitle = string.Empty;
+        }
         LAPolicy policy = request.AllowPasswordAuth ? LAPolicy.DeviceOwnerAuthentication : LAPolicy.DeviceOwnerAuthenticationWithBiometrics;
         if (context.CanEvaluatePolicy(policy, out NSError _))
         {
