@@ -22,7 +22,7 @@ public partial class MainPage : ContentPage
             Console.WriteLine(item.ToString());
         }
         //get current status of the hardware
-        var result = await biometric.GetAuthenticationStatusAsync(AuthenticatorStrength.Weak);
+        var result = await biometric.GetAuthenticationStatusAsync();
         if (result == BiometricHwStatus.Success)
         {
             var req = new AuthenticationRequest()
