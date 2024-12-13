@@ -6,7 +6,7 @@ public interface IBiometric
 
     Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token);
 
-    Task<List<BiometricType>> GetEnrolledBiometricTypesAsync();
+    Task<BiometricType[]> GetEnrolledBiometricTypesAsync();
 
     bool IsPlatformSupported { get; }
 }
