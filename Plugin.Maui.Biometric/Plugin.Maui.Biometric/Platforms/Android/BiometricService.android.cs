@@ -106,7 +106,7 @@ internal partial class BiometricService
             if(canAuthenticate == BiometricManager.BiometricErrorNoneEnrolled)
             {
                 availableOptions[0] = BiometricType.None;
-                availableOptions[0] = BiometricType.None;
+                availableOptions[1] = BiometricType.None;
             }
             if (canAuthenticate == BiometricManager.BiometricSuccess)
             {
@@ -129,8 +129,6 @@ internal partial class BiometricService
                     availableOptions[1] = BiometricType.None;
                 }
             }
-            Debug.WriteLine(availableOptions[0]);
-            Debug.WriteLine(availableOptions[1]);
         }
         return Task.FromResult(availableOptions);
     }

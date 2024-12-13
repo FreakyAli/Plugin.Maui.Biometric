@@ -44,23 +44,16 @@ internal partial class BiometricService
     public partial Task<BiometricType[]> GetEnrolledBiometricTypesAsync()
     {
         var localAuthContext = new LAContext();
-        var availableOptions = new BiometricType[2];
+        var availableOptions = new BiometricType[2] { BiometricType.None, BiometricType.None };
         if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))
         {
             var isFace = localAuthContext.BiometryType == LABiometryType.FaceId;
             var isFingerprint = localAuthContext.BiometryType == LABiometryType.TouchId;
-            if (isFace)
+
+            if (isFace || isFingerprint)
             {
-                availableOptions[0] = (BiometricType.Face);
-            }
-            if (isFingerprint)
-            {
-                availableOptions[1] = (BiometricType.Fingerprint);
-            }
-            if (!isFace && !isFingerprint)
-            {
-                availableOptions[0] = (BiometricType.None);
-                availableOptions[1] = (BiometricType.None);
+                availableOptions[0] = isFace ? BiometricType.Face : BiometricType.None;
+                availableOptions[1] = isFingerprint ? BiometricType.Fingerprint : BiometricType.None;
             }
         }
         return Task.FromResult(availableOptions);
