@@ -1,9 +1,10 @@
-﻿namespace Samples;
-
-public partial class AppShell : Shell
+﻿namespace Samples
 {
-    public AppShell()
+    public partial class AppShell : Shell
     {
-        InitializeComponent();
+        public AppShell()
+        {
+            InitializeComponent();
+        }
     }
 }

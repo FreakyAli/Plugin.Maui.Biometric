@@ -1,43 +1,45 @@
-﻿using System.Diagnostics;
-using Plugin.Maui.Biometric;
+﻿using Plugin.Maui.Biometric;
 
-namespace Samples;
-
-public partial class MainPage : ContentPage
+namespace Samples
 {
-    public readonly IBiometric biometric;
-
-    public MainPage()
+    public partial class MainPage : ContentPage
     {
-        InitializeComponent();
-        biometric = BiometricAuthenticationService.Default;
-    }
+        public readonly IBiometric biometric;
 
-    private async void OnCounterClicked(object sender, EventArgs e)
-    {
-        //get a list of enrolled biometric types
-        var enrolledTypes = await biometric.GetEnrolledBiometricTypesAsync();
-        foreach(var item in enrolledTypes)
+        public MainPage()
         {
-            Console.WriteLine(item.ToString());
+            InitializeComponent();
+            biometric = BiometricAuthenticationService.Default;
         }
-        //get current status of the hardware
-        var result = await biometric.GetAuthenticationStatusAsync();
-        if (result == BiometricHwStatus.Success)
+
+        private async void OnCounterClicked(object sender, EventArgs e)
         {
-            var req = new AuthenticationRequest()
+            //get a list of enrolled biometric types
+            var enrolledTypes = await biometric.GetEnrolledBiometricTypesAsync();
+            foreach (var item in enrolledTypes)
             {
-                Title = "A good title",
-                Subtitle = "An equally good subtitle",
-                NegativeText = "Cancel",
-                Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
-                AllowPasswordAuth = false,
-            };
-            // biometric authentication
-            var data = await biometric.AuthenticateAsync(req,
-                CancellationToken.None); // You can also pass a valid token and use it to cancel this tsak
+                Console.WriteLine(item.ToString());
+            }
+            //get current status of the hardware
+            var result = await biometric.GetAuthenticationStatusAsync();
+            if (result == BiometricHwStatus.Success)
+            {
+                var req = new AuthenticationRequest()
+                {
+                    Title = "A good title",
+                    Subtitle = "An equally good subtitle",
+                    NegativeText = "Cancel",
+                    //For Windows Hello use only "Description"
+                    Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+                    AllowPasswordAuth = false,
+                };
+                // biometric authentication
+                var data = await biometric.AuthenticateAsync(req,
+                    CancellationToken.None); // You can also pass a valid token and use it to cancel this tsak
 
-            Console.Write(data);
+                Console.Write(data);
+            }
         }
     }
+
 }
