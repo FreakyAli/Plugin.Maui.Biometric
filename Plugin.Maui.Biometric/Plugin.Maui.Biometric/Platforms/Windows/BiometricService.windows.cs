@@ -36,6 +36,7 @@ namespace Plugin.Maui.Biometric
                             return new AuthenticationResponse
                             {
                                 Status = BiometricResponseStatus.Failure,
+                                AuthenticationType = AuthenticationType.WindowsHello,
                                 ErrorMsg = $"User did not verify, authentication status: {authStatus}"
                             };
                         }
@@ -44,6 +45,7 @@ namespace Plugin.Maui.Biometric
                             return new AuthenticationResponse
                             {
                                 Status = BiometricResponseStatus.Success,
+                                AuthenticationType = AuthenticationType.WindowsHello,
                                 ErrorMsg = null
                             };
                         }
@@ -53,6 +55,7 @@ namespace Plugin.Maui.Biometric
                         return new AuthenticationResponse
                         {
                             Status = BiometricResponseStatus.Failure,
+                            AuthenticationType = AuthenticationType.WindowsHello,
                             ErrorMsg = "Biometric authentication is not available on this device."
                         };
                     }
@@ -64,6 +67,7 @@ namespace Plugin.Maui.Biometric
                 return new AuthenticationResponse
                 {
                     Status = BiometricResponseStatus.Failure,
+                    AuthenticationType = AuthenticationType.WindowsHello,
                     ErrorMsg = ex.Message + ex.StackTrace
                 };
             }

@@ -4,5 +4,6 @@ public enum AuthenticationType
 {
     Unknown,
     DeviceCreds,
-    Biometric
+    Biometric,
+    WindowsHello
 }
