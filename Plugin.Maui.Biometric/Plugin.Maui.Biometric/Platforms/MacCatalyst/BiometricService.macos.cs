@@ -48,19 +48,25 @@ internal partial class BiometricService
     public partial Task<BiometricType[]> GetEnrolledBiometricTypesAsync()
     {
         var localAuthContext = new LAContext();
-        var availableOptions = new BiometricType[2] { BiometricType.None, BiometricType.None };
-        if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))
-        {
-            var isFace = localAuthContext.BiometryType == LABiometryType.FaceId;
-            var isFingerprint = localAuthContext.BiometryType == LABiometryType.TouchId;
+        var biometricTypes = new List<BiometricType>();
 
-            if (isFace || isFingerprint)
+        if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out _))
+        {
+            switch (localAuthContext.BiometryType)
             {
-                availableOptions[0] = isFace ? BiometricType.Face : BiometricType.None;
-                availableOptions[1] = isFingerprint ? BiometricType.Fingerprint : BiometricType.None;
+                case LABiometryType.FaceId:
+                    biometricTypes.Add(BiometricType.Face);
+                    break;
+                case LABiometryType.TouchId:
+                    biometricTypes.Add(BiometricType.Fingerprint);
+                    break;
+                case LABiometryType.None:
+                default:
+                    biometricTypes.Add(BiometricType.None);
+                    break;
             }
         }
-        return Task.FromResult(availableOptions);
+        return Task.FromResult(biometricTypes.ToArray());
     }
 
     private static partial bool GetIsPlatformSupported() => true;

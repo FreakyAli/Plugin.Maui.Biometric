@@ -49,12 +49,15 @@
 		<None Remove="Platforms\Android\" />
 		<None Remove="Platforms\iOS\" />
 		<None Remove="Platforms\Windows\" />
+		<None Remove="Platforms\MacCatalyst\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Platforms\Android\" />
 		<Folder Include="Platforms\iOS\" />
+		<Folder Include="Platforms\MacCatalyst\" />
+		<Folder Include="Platforms\Windows\" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
 		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.28" />
@@ -63,32 +66,32 @@
 	
 	<!-- Android -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0-android')) != true">
-	<Compile Remove="**\*.Android.cs" />
-	<None Include="**\*.Android.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<Compile Remove="**\*.android.cs" />
+	<None Include="**\*.android.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	<Compile Remove="**\Android\**\*.cs" />
 	<None Include="**\Android\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />  
 	</ItemGroup>
 
 	<!-- iOS -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0-ios')) != true">
-	<Compile Remove="**\*.iOS.cs" />
-	<None Include="**\*.iOS.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<Compile Remove="**\*.ios.cs" />
+	<None Include="**\*.ios.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	<Compile Remove="**\iOS\**\*.cs" />
 	<None Include="**\iOS\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />  
 	</ItemGroup>
 
 	<!-- Mac Catalyst -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0-maccatalyst')) != true">
-	<Compile Remove="**\*.MacCatalyst.cs" />
-	<None Include="**\*.MacCatalyst.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<Compile Remove="**\*.macos.cs" />
+	<None Include="**\*.macos.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	<Compile Remove="**\MacCatalyst\**\*.cs" />
 	<None Include="**\MacCatalyst\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	</ItemGroup>
 
 	<!-- Windows -->
 	<ItemGroup Condition="$(TargetFramework.Contains('-windows')) != true">
-	<Compile Remove="**\*.Windows.cs" />
-	<None Include="**\*.Windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<Compile Remove="**\*.windows.cs" />
+	<None Include="**\*.windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	<Compile Remove="**\Windows\**\*.cs" />
 	<None Include="**\Windows\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />  
 	</ItemGroup>

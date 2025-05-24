@@ -18,27 +18,25 @@ namespace Samples
             var enrolledTypes = await biometric.GetEnrolledBiometricTypesAsync();
             foreach (var item in enrolledTypes)
             {
-                Console.WriteLine(item.ToString());
+                Console.WriteLine("Biometric configured: " + item.ToString());
             }
             //get current status of the hardware
             var result = await biometric.GetAuthenticationStatusAsync();
-            if (result == BiometricHwStatus.Success)
+            
+            var req = new AuthenticationRequest()
             {
-                var req = new AuthenticationRequest()
-                {
-                    Title = "A good title",
-                    Subtitle = "An equally good subtitle",
-                    NegativeText = "Cancel",
-                    //For Windows Hello use only "Description"
-                    Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
-                    AllowPasswordAuth = false,
-                };
-                // biometric authentication
-                var data = await biometric.AuthenticateAsync(req,
-                    CancellationToken.None); // You can also pass a valid token and use it to cancel this tsak
+                Title = "A good title",
+                Subtitle = "An equally good subtitle",
+                NegativeText = "Cancel",
+                //For Windows Hello use only "Description"
+                Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+                AllowPasswordAuth = false,
+            };
+            // biometric authentication
+            var data = await biometric.AuthenticateAsync(req,
+                CancellationToken.None); // You can also pass a valid token and use it to cancel this tsak
 
-                Console.Write(data);
-            }
+            Console.Write(data);
         }
     }
 }
