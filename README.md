@@ -16,6 +16,7 @@ A biometric plugin for .NET MAUI, for Android and iOS
 | ------------- |:-------------:|
 | iOS             | iOS 15.0 + |
 | Android    | API 26+ (Oreo) | 
+| Windows    | v.10.0.17763.0 |
 
 
 ### Like what you saw? Want to keep this repo alive?

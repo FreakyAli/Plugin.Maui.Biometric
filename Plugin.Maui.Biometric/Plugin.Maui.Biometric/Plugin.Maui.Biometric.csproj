@@ -2,14 +2,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>.net9.0;net9.0-android;net9.0-ios</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<UseMaui>true</UseMaui>
 		<Nullable>disable</Nullable>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
-		<AssemblyVersion>0.0.5</AssemblyVersion>
-		<AssemblyFileVersion>0.0.5</AssemblyFileVersion>
-		<Version>0.0.5-pre</Version>
+		<AssemblyVersion>0.0.6</AssemblyVersion>
+		<AssemblyFileVersion>0.0.6</AssemblyFileVersion>
+		<Version>0.0.6-pre</Version>
 		<NeutralLanguage>en</NeutralLanguage>
 		<!--Version of C# to use -->
 		<PackageId>Plugin.Maui.Biometric</PackageId>
@@ -28,8 +29,11 @@
 		<SynchReleaseVersion>false</SynchReleaseVersion>
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
 		<NoWarn>CS8618</NoWarn>
+
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<Configurations>Release;Debug</Configurations>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
@@ -44,6 +48,7 @@
 	<ItemGroup>
 		<None Remove="Platforms\Android\" />
 		<None Remove="Platforms\iOS\" />
+		<None Remove="Platforms\Windows\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
