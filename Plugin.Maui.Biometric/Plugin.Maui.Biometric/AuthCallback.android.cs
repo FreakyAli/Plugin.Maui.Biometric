@@ -1,5 +1,4 @@
-﻿using BiometricPrompt = AndroidX.Biometric.BiometricPrompt;
-using Java.Lang;
+using System;
 
 namespace Plugin.Maui.Biometric;
 

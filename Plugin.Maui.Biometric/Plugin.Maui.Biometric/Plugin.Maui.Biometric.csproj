@@ -54,6 +54,10 @@
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
+		<Folder Include="Platforms/Android/" />
+		<Folder Include="Platforms/iOS/" />
+		<Folder Include="Platforms/MacCatalyst/" />
+		<Folder Include="Platforms/Windows/" />
 		<Folder Include="Platforms\Android\" />
 		<Folder Include="Platforms\iOS\" />
 		<Folder Include="Platforms\MacCatalyst\" />

@@ -24,42 +24,34 @@ internal partial class BiometricService
     {
         try
         {
-            var authResponse = await Task.Run(async () =>
+            var availability = await UserConsentVerifier.CheckAvailabilityAsync();
+            if (availability == UserConsentVerifierAvailability.Available)
             {
-                var availability = await UserConsentVerifier.CheckAvailabilityAsync();
-                if (availability == UserConsentVerifierAvailability.Available)
-                {
-                    var authStatus = await UserConsentVerifier.RequestVerificationAsync(request.Description);
-                    if (authStatus != UserConsentVerificationResult.Verified)
-                    {
-                        return new AuthenticationResponse
-                        {
-                            Status = BiometricResponseStatus.Failure,
-                            AuthenticationType = AuthenticationType.WindowsHello,
-                            ErrorMsg = $"User did not verify, authentication status: {authStatus}"
-                        };
-                    }
-                    else
-                    {
-                        return new AuthenticationResponse
-                        {
-                            Status = BiometricResponseStatus.Success,
-                            AuthenticationType = AuthenticationType.WindowsHello,
-                            ErrorMsg = null
-                        };
-                    }
-                }
-                else
+                var authStatus = await UserConsentVerifier.RequestVerificationAsync(request.Description);
+                if (authStatus == UserConsentVerificationResult.Verified)
                 {
                     return new AuthenticationResponse
                     {
-                        Status = BiometricResponseStatus.Failure,
+                        Status = BiometricResponseStatus.Success,
                         AuthenticationType = AuthenticationType.WindowsHello,
-                        ErrorMsg = "Biometric authentication is not available on this device."
+                        ErrorMsg = null
                     };
                 }
-            }, token);
-            return authResponse;
+
+                return new AuthenticationResponse
+                {
+                    Status = BiometricResponseStatus.Failure,
+                    AuthenticationType = AuthenticationType.WindowsHello,
+                    ErrorMsg = $"User did not verify, authentication status: {authStatus}"
+                };
+            }
+
+            return new AuthenticationResponse
+            {
+                Status = BiometricResponseStatus.Failure,
+                AuthenticationType = AuthenticationType.WindowsHello,
+                ErrorMsg = "Biometric authentication is not available on this device."
+            };
         }
         catch (Exception ex)
         {
