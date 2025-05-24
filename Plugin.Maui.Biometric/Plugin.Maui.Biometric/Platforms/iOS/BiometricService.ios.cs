@@ -41,7 +41,7 @@ internal partial class BiometricService
             response.Status = callback.Item1 ? BiometricResponseStatus.Success : BiometricResponseStatus.Failure;
             response.AuthenticationType = AuthenticationType.Unknown;
             response.ErrorMsg = callback.Item2?.ToString();
-        };
+        }
         return response;
     }
 
