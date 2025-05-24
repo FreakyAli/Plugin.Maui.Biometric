@@ -4,7 +4,6 @@ using AndroidX.Core.Content;
 using AndroidX.Biometric;
 using Activity = AndroidX.AppCompat.App.AppCompatActivity;
 using Android.Content.PM;
-using System.Diagnostics;
 
 namespace Plugin.Maui.Biometric;
 

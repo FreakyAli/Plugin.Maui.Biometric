@@ -15,6 +15,7 @@ A biometric plugin for .NET MAUI, for Android and iOS
 | Support       | OS            |
 | ------------- |:-------------:|
 | iOS             | iOS 15.0 + |
+| macOS    | macOS 12.0+|
 | Android    | API 26+ (Oreo) | 
 | Windows    | v.10.0.17763.0 |
 
@@ -28,7 +29,7 @@ Community PR's for the other platforms are welcome but I will personally not be 
 
 ## Introduction:
 
-Add the following permissions for Android and iOS:
+Add the following permissions for Android and iOS/macOS:
 
 `AndroidManifest.xml`
 

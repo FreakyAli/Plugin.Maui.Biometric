@@ -1,5 +1,5 @@
 namespace Plugin.Maui.Biometric;
-#if NET && !ANDROID && !IOS && !WINDOWS
+#if NET && !ANDROID && !IOS && !WINDOWS && !MACCATALYST
 internal partial class BiometricService : IBiometric
 {
     public partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
