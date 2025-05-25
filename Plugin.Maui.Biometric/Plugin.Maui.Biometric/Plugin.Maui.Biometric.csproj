@@ -46,18 +46,20 @@
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="Platforms/iOS/BiometricService.ios.cs" />
+	  <Compile Remove="Platforms/MacCatalyst/BiometricService.macos.cs" />
+	</ItemGroup>
+	<ItemGroup>
 		<None Remove="Platforms\Android\" />
 		<None Remove="Platforms\iOS\" />
 		<None Remove="Platforms\Windows\" />
 		<None Remove="Platforms\MacCatalyst\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
+		<None Include="Platforms/iOS/BiometricService.ios.cs" />
+		<None Include="Platforms/MacCatalyst/BiometricService.macos.cs" />
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
-		<Folder Include="Platforms/Android/" />
-		<Folder Include="Platforms/iOS/" />
-		<Folder Include="Platforms/MacCatalyst/" />
-		<Folder Include="Platforms/Windows/" />
 		<Folder Include="Platforms\Android\" />
 		<Folder Include="Platforms\iOS\" />
 		<Folder Include="Platforms\MacCatalyst\" />
@@ -67,26 +69,36 @@
 		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.28" />
 		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.1" />
 	</ItemGroup>
-	
+
 	<!-- Android -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net8.0-android')) != true">
 	<Compile Remove="**\*.android.cs" />
 	<None Include="**\*.android.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<Compile Remove="**\Android\**\*.cs" />
+	<None Include="**\Android\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />  
 	</ItemGroup>
 
-	<!-- Both iOS and Mac Catalyst -->
-	<ItemGroup Condition="$(TargetFramework.StartsWith('net8.0-ios')) != true AND $(TargetFramework.StartsWith('net8.0-maccatalyst')) != true">
-	<Compile Remove="**\*.apple.cs" />
-	<None Include="**\*.apple.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<!-- iOS -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net8.0-ios')) != true">
+	<Compile Remove="**\*.ios.cs" />
+	<None Include="**\*.ios.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<Compile Remove="**\iOS\**\*.cs" />
+	<None Include="**\iOS\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />  
+	</ItemGroup>
+
+	<!-- Mac Catalyst -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net8.0-maccatalyst')) != true">
+	<Compile Remove="**\*.macos.cs" />
+	<None Include="**\*.macos.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<Compile Remove="**\MacCatalyst\**\*.cs" />
+	<None Include="**\MacCatalyst\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	</ItemGroup>
 
 	<!-- Windows -->
 	<ItemGroup Condition="$(TargetFramework.Contains('-windows')) != true">
-  	<Compile Remove="**\*.windows.cs" />
-  	<None Include="**\*.windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
-	</ItemGroup>
-	
-	<ItemGroup>
-	  <Compile Include="BiometricService.apple.cs" />
+	<Compile Remove="**\*.windows.cs" />
+	<None Include="**\*.windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	<Compile Remove="**\Windows\**\*.cs" />
+	<None Include="**\Windows\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />  
 	</ItemGroup>
 </Project>
