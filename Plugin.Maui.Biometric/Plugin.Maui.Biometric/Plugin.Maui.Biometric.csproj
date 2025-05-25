@@ -46,17 +46,11 @@
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Compile Remove="Platforms/iOS/BiometricService.ios.cs" />
-	  <Compile Remove="Platforms/MacCatalyst/BiometricService.macos.cs" />
-	</ItemGroup>
-	<ItemGroup>
 		<None Remove="Platforms\Android\" />
 		<None Remove="Platforms\iOS\" />
 		<None Remove="Platforms\Windows\" />
 		<None Remove="Platforms\MacCatalyst\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
-		<None Include="Platforms/iOS/BiometricService.ios.cs" />
-		<None Include="Platforms/MacCatalyst/BiometricService.macos.cs" />
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
