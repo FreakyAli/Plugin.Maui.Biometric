@@ -12,5 +12,6 @@ public enum BiometricHwStatus
     NotEnrolled,
     LockedOut,
     Success,
-    Failure
+    Failure,
+    PresentButNotEnrolled
 }

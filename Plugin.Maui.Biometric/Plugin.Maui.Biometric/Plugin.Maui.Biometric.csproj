@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>.net9.0;net9.0-android;net9.0-ios</TargetFrameworks>
+		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<UseMaui>true</UseMaui>
 		<Nullable>disable</Nullable>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
-		<AssemblyVersion>0.0.6</AssemblyVersion>
-		<AssemblyFileVersion>0.0.6</AssemblyFileVersion>
-		<Version>0.0.6-pre</Version>
+		<AssemblyVersion>0.0.1</AssemblyVersion>
+		<AssemblyFileVersion>0.0.1</AssemblyFileVersion>
+		<Version>0.0.1</Version>
 		<NeutralLanguage>en</NeutralLanguage>
 		<!--Version of C# to use -->
 		<PackageId>Plugin.Maui.Biometric</PackageId>
@@ -29,8 +29,8 @@
 		<SynchReleaseVersion>false</SynchReleaseVersion>
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
 		<NoWarn>CS8618</NoWarn>
-
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
@@ -49,17 +49,18 @@
 		<None Remove="Platforms\Android\" />
 		<None Remove="Platforms\iOS\" />
 		<None Remove="Platforms\Windows\" />
+		<None Remove="Platforms\MacCatalyst\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Platforms\Android\" />
 		<Folder Include="Platforms\iOS\" />
+		<Folder Include="Platforms\MacCatalyst\" />
+		<Folder Include="Platforms\Windows\" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
-		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.27" />
-		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.4.5" />
+		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.28" />
+		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.1" />
 	</ItemGroup>
-	<ItemGroup />
-	<ItemGroup />
 </Project>

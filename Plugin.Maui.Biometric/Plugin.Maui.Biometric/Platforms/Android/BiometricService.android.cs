@@ -4,7 +4,6 @@ using AndroidX.Core.Content;
 using AndroidX.Biometric;
 using Activity = AndroidX.AppCompat.App.AppCompatActivity;
 using Android.Content.PM;
-using System.Diagnostics;
 
 namespace Plugin.Maui.Biometric;
 
@@ -18,12 +17,30 @@ internal partial class BiometricService
         }
 
         var biometricManager = BiometricManager.From(activity);
-        var strength = authStrength.Equals(AuthenticatorStrength.Strong) ?
-            BiometricManager.Authenticators.BiometricStrong :
-            BiometricManager.Authenticators.BiometricWeak;
 
-        var value = biometricManager.CanAuthenticate(strength);
-        var response = value switch
+        var strength = authStrength == AuthenticatorStrength.Strong
+            ? BiometricManager.Authenticators.BiometricStrong
+            : BiometricManager.Authenticators.BiometricWeak;
+
+        int result = biometricManager.CanAuthenticate(strength);
+
+        // Fallback: handle devices that incorrectly report "NoneEnrolled"
+        if (result == BiometricManager.BiometricErrorNoneEnrolled)
+        {
+            var packageManager = activity.PackageManager;
+
+            bool hasFingerprint = packageManager.HasSystemFeature(PackageManager.FeatureFingerprint);
+            bool hasFace = OperatingSystem.IsAndroidVersionAtLeast(29) &&
+                        packageManager.HasSystemFeature(PackageManager.FeatureFace);
+
+            // If biometric hardware exists but CanAuthenticate failed to recognize enrollment, treat as partial success
+            if (hasFingerprint || hasFace)
+            {
+                return Task.FromResult(BiometricHwStatus.PresentButNotEnrolled);
+            }
+        }
+
+        var response = result switch
         {
             BiometricManager.BiometricSuccess => BiometricHwStatus.Success,
             BiometricManager.BiometricErrorNoHardware => BiometricHwStatus.NoHardware,
@@ -98,39 +115,41 @@ internal partial class BiometricService
 
     public partial Task<BiometricType[]> GetEnrolledBiometricTypesAsync()
     {
-        var availableOptions = new BiometricType[2];
+        var biometricTypes = new List<BiometricType>();
+
         if (Platform.CurrentActivity is Activity activity)
         {
             var biometricManager = BiometricManager.From(activity);
             var canAuthenticate = biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricWeak);
-            if(canAuthenticate == BiometricManager.BiometricErrorNoneEnrolled)
-            {
-                availableOptions[0] = BiometricType.None;
-                availableOptions[1] = BiometricType.None;
-            }
+
             if (canAuthenticate == BiometricManager.BiometricSuccess)
             {
-                // Determine the type of biometric hardware available
                 var packageManager = activity.PackageManager;
-                var isFingerprint = packageManager.HasSystemFeature(PackageManager.FeatureFingerprint);
-                var isFace = OperatingSystem.IsAndroidVersionAtLeast(29) && packageManager.HasSystemFeature(PackageManager.FeatureFace);
 
-                if (isFace)
+                // Face detection supported from Android 10 (API 29) onwards
+                bool isFaceSupported = OperatingSystem.IsAndroidVersionAtLeast(29) &&
+                                    packageManager.HasSystemFeature(PackageManager.FeatureFace);
+
+                bool isFingerprintSupported = packageManager.HasSystemFeature(PackageManager.FeatureFingerprint);
+
+                if (isFaceSupported)
                 {
-                    availableOptions[0] = BiometricType.Face;
+                    biometricTypes.Add(BiometricType.Face);
                 }
-                if (isFingerprint)
+
+                if (isFingerprintSupported)
                 {
-                    availableOptions[1] = BiometricType.Fingerprint;
-                }
-                if (!isFace && !isFingerprint)
-                {
-                    availableOptions[0] = BiometricType.None;
-                    availableOptions[1] = BiometricType.None;
+                    biometricTypes.Add(BiometricType.Fingerprint);
                 }
             }
         }
-        return Task.FromResult(availableOptions);
+
+        if (biometricTypes.Count == 0)
+        {
+            biometricTypes.Add(BiometricType.None);
+        }
+
+        return Task.FromResult(biometricTypes.ToArray());
     }
 
     private static partial bool GetIsPlatformSupported() => true;
