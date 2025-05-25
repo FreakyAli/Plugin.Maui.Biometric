@@ -85,4 +85,8 @@
   	<Compile Remove="**\*.windows.cs" />
   	<None Include="**\*.windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	</ItemGroup>
+	
+	<ItemGroup>
+	  <Compile Include="BiometricService.apple.cs" />
+	</ItemGroup>
 </Project>
