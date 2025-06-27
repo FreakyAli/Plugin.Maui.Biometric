@@ -5,6 +5,7 @@ A biometric plugin for .NET MAUI, for Android and iOS
 <div>
    <a href="https://www.nuget.org/packages/Plugin.Maui.Biometric"><img src="https://img.shields.io/nuget/v/Plugin.Maui.Biometric?color=blue&logo=nuget"></a>
    <a href="https://www.nuget.org/packages/Plugin.Maui.Biometric"><img src="https://img.shields.io/nuget/dt/Plugin.Maui.Biometric.svg"></a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FFreakyAli%2FPlugin.Maui.Biometric?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FFreakyAli%2FPlugin.Maui.Biometric.svg?type=shield"/></a>
    <a href="./LICENSE"><img src="https://img.shields.io/github/license/freakyali/plugin.maui.biometric"></a>
    <a href="https://www.codefactor.io/repository/github/freakyali/plugin.maui.biometric"><img src="https://www.codefactor.io/repository/github/freakyali/plugin.maui.biometric/badge" alt="CodeFactor" /></a>   
 </div>
@@ -47,6 +48,10 @@ No runtime permission requests are needed and this is it you're ready to use our
 Visit our [wiki for the documentation](https://github.com/FreakyAli/Plugin.Maui.Biometric/wiki)
 
 ## Activity 
+
+Fossa: 
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFreakyAli%2FPlugin.Maui.Biometric.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FFreakyAli%2FPlugin.Maui.Biometric?ref=badge_large)
 
 Sparkline: 
 
