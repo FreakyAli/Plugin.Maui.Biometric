@@ -11,9 +11,6 @@ A biometric plugin for .NET MAUI, for Android and iOS
 </div>
 
 
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFreakyAli%2FPlugin.Maui.Biometric.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FFreakyAli%2FPlugin.Maui.Biometric?ref=badge_large)
-
 ## Platforms
 
 | Support       | OS            |
@@ -51,6 +48,10 @@ No runtime permission requests are needed and this is it you're ready to use our
 Visit our [wiki for the documentation](https://github.com/FreakyAli/Plugin.Maui.Biometric/wiki)
 
 ## Activity 
+
+Fossa: 
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFreakyAli%2FPlugin.Maui.Biometric.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FFreakyAli%2FPlugin.Maui.Biometric?ref=badge_large)
 
 Sparkline: 
 
