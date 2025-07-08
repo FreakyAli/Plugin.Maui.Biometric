@@ -41,7 +41,13 @@ Add the following permissions for Android and iOS/macOS:
     <key>NSFaceIDUsageDescription</key>
     <string>Need your face to unlock! </string>
 
-No runtime permission requests are needed and this is it you're ready to use our plugin!!
+To use it as a service all you need to do is add this line to your `MauiProgram.cs`
+
+```
+builder.Services.AddSingleton((e) => BiometricAuthenticationService.Default);
+```
+
+No runtime permission requests are needed, and this is it, you're ready to use our plugin!!
 
 ## Documentation: 
 
