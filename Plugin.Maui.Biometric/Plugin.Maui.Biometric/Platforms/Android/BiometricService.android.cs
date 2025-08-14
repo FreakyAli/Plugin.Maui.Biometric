@@ -96,7 +96,7 @@ internal partial class BiometricService
 
             var biometricPrompt = new BiometricPrompt(activity, executor, authCallback);
 
-            await using (token.Register(() => biometricPrompt.CancelAuthentication()))
+            using (token.Register(() => biometricPrompt.CancelAuthentication()))
             {
                 biometricPrompt.Authenticate(promptInfo);
                 var response = await authCallback.Response.Task;
