@@ -153,4 +153,8 @@ internal partial class BiometricService
     }
 
     private static partial bool GetIsPlatformSupported() => true;
+    
+    public void Dispose()
+    {
+    }
 }

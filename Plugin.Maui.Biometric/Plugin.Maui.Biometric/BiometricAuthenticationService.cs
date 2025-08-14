@@ -1,5 +1,5 @@
 ﻿namespace Plugin.Maui.Biometric;
-
+[Preserve(AllMembers = true)]
 public static class BiometricAuthenticationService
 {
     private static readonly Lazy<IBiometric> defaultImpl =
