@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using Windows.Security.Credentials.UI;
 
 namespace Plugin.Maui.Biometric;
-
-[Preserve(AllMembers = true)]
 internal partial class BiometricService
 {
     public partial async Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
