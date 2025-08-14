@@ -29,21 +29,50 @@ internal partial class BiometricService
     public async partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
     {
         var response = new AuthenticationResponse();
-        var context = new LAContext();
+        using var context = new LAContext();
+
         if (request.AllowPasswordAuth is false)
         {
             context.LocalizedFallbackTitle = string.Empty;
         }
-        LAPolicy policy = request.AllowPasswordAuth ? LAPolicy.DeviceOwnerAuthentication : LAPolicy.DeviceOwnerAuthenticationWithBiometrics;
+
+        LAPolicy policy = request.AllowPasswordAuth
+            ? LAPolicy.DeviceOwnerAuthentication
+            : LAPolicy.DeviceOwnerAuthenticationWithBiometrics;
+
         if (context.CanEvaluatePolicy(policy, out NSError _))
         {
-            var callback = await context.EvaluatePolicyAsync(policy, request.Title);
-            response.Status = callback.Item1 ? BiometricResponseStatus.Success : BiometricResponseStatus.Failure;
-            response.AuthenticationType = AuthenticationType.Unknown;
-            response.ErrorMsg = callback.Item2?.ToString();
+            // Register cancellation to invalidate the context
+            using (token.Register(() =>
+            {
+                context.Invalidate();
+            }))
+            {
+                try
+                {
+                    var callback = await context.EvaluatePolicyAsync(policy, request.Title);
+                    response.Status = callback.Item1
+                        ? BiometricResponseStatus.Success
+                        : BiometricResponseStatus.Failure;
+                    response.AuthenticationType = AuthenticationType.Unknown;
+                    response.ErrorMsg = callback.Item2?.ToString();
+                }
+                catch (OperationCanceledException)
+                {
+                    response.Status = BiometricResponseStatus.Failure;
+                    response.ErrorMsg = "Authentication was cancelled.";
+                }
+            }
         }
+        else
+        {
+            response.Status = BiometricResponseStatus.Failure;
+            response.ErrorMsg = "Biometric authentication not available.";
+        }
+
         return response;
     }
+
 
     public partial Task<BiometricType[]> GetEnrolledBiometricTypesAsync()
     {
@@ -70,7 +99,7 @@ internal partial class BiometricService
     }
 
     private static partial bool GetIsPlatformSupported() => true;
-    
+
     public void Dispose()
     {
     }
