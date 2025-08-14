@@ -1,7 +1,6 @@
 namespace Plugin.Maui.Biometric;
 
-[Preserve(AllMembers = true)]
-public interface IBiometric : IDisposable
+public interface IBiometric
 {
     Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength = AuthenticatorStrength.Strong);
 

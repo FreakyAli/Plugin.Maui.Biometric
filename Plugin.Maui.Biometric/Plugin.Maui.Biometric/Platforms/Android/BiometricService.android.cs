@@ -96,7 +96,7 @@ internal partial class BiometricService
 
             var biometricPrompt = new BiometricPrompt(activity, executor, authCallback);
 
-            await using (token.Register(() => biometricPrompt.CancelAuthentication()))
+            using (token.Register(() => biometricPrompt.CancelAuthentication()))
             {
                 biometricPrompt.Authenticate(promptInfo);
                 var response = await authCallback.Response.Task;
@@ -153,8 +153,4 @@ internal partial class BiometricService
     }
 
     private static partial bool GetIsPlatformSupported() => true;
-    
-    public void Dispose()
-    {
-    }
 }

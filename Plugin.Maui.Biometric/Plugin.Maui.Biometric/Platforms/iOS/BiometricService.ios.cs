@@ -43,12 +43,9 @@ internal partial class BiometricService
         if (context.CanEvaluatePolicy(policy, out NSError _))
         {
             // Register cancellation to invalidate the context
-            using (token.Register(() =>
+            try
             {
-                context.Invalidate();
-            }))
-            {
-                try
+                using (token.Register(() => context.Invalidate()))
                 {
                     var callback = await context.EvaluatePolicyAsync(policy, request.Title);
                     response.Status = callback.Item1
@@ -57,11 +54,11 @@ internal partial class BiometricService
                     response.AuthenticationType = AuthenticationType.Unknown;
                     response.ErrorMsg = callback.Item2?.ToString();
                 }
-                catch (OperationCanceledException)
-                {
-                    response.Status = BiometricResponseStatus.Failure;
-                    response.ErrorMsg = "Authentication was cancelled.";
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                response.Status = BiometricResponseStatus.Failure;
+                response.ErrorMsg = "Authentication was cancelled.";
             }
         }
         else
@@ -99,8 +96,4 @@ internal partial class BiometricService
     }
 
     private static partial bool GetIsPlatformSupported() => true;
-
-    public void Dispose()
-    {
-    }
 }

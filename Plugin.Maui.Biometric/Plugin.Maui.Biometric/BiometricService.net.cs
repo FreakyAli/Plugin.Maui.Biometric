@@ -18,10 +18,5 @@ internal partial class BiometricService : IBiometric
     }
 
     private static partial bool GetIsPlatformSupported() => false;
-
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
 }
 #endif
