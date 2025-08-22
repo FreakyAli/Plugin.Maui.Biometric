@@ -9,6 +9,6 @@ public class AuthenticationRequest
     /// <summary>
     /// On Windows Platform with WindowsHello, this propery is used as a message for auth
     /// </summary>
-    public string Description { get; set; }
+    public string? Description { get; set; }
     public AuthenticatorStrength AuthStrength { get; set; }
 }
