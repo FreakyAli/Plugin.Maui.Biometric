@@ -29,9 +29,9 @@ internal partial class BiometricService
         {
             var packageManager = activity.PackageManager;
 
-            bool hasFingerprint = packageManager.HasSystemFeature(PackageManager.FeatureFingerprint);
-            bool hasFace = OperatingSystem.IsAndroidVersionAtLeast(29) &&
-                        packageManager.HasSystemFeature(PackageManager.FeatureFace);
+            var hasFingerprint = packageManager?.HasSystemFeature(PackageManager.FeatureFingerprint) == true;
+            var hasFace = OperatingSystem.IsAndroidVersionAtLeast(29) &&
+                        packageManager?.HasSystemFeature(PackageManager.FeatureFace) == true;
 
             // If biometric hardware exists but CanAuthenticate failed to recognize enrollment, treat as partial success
             if (hasFingerprint || hasFace)
@@ -128,9 +128,9 @@ internal partial class BiometricService
 
                 // Face detection supported from Android 10 (API 29) onwards
                 bool isFaceSupported = OperatingSystem.IsAndroidVersionAtLeast(29) &&
-                                    packageManager.HasSystemFeature(PackageManager.FeatureFace);
+                                    packageManager?.HasSystemFeature(PackageManager.FeatureFace) == true;
 
-                bool isFingerprintSupported = packageManager.HasSystemFeature(PackageManager.FeatureFingerprint);
+                bool isFingerprintSupported = packageManager?.HasSystemFeature(PackageManager.FeatureFingerprint) == true;
 
                 if (isFaceSupported)
                 {

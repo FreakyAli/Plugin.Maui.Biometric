@@ -1,10 +1,13 @@
-using System;
-
 namespace Plugin.Maui.Biometric;
 partial class BiometricCryptoService
 {
+    public partial Task CreateKeyAsync(string keyId, CryptoKeyOptions options, CancellationToken token = default)
+    {
+        return Task.CompletedTask;
+    }
+
     public partial Task DeleteKeyAsync(string keyId)
-    { 
+    {
         return Task.CompletedTask;
     }
 
@@ -36,10 +39,5 @@ partial class BiometricCryptoService
     public partial Task<SecureCryptoResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token = default)
     {
         return Task.FromResult(new SecureCryptoResponse());
-    }
-
-    public partial Task CreateKeyAsync(string keyId, CryptoKeyOptions options, CancellationToken token = default)
-    {
-        return Task.CompletedTask;
     }
 }

@@ -1,5 +1,4 @@
 namespace Plugin.Maui.Biometric;
-#if NET && !ANDROID && !IOS && !WINDOWS && !MACCATALYST
 partial class BiometricCryptoService
 {
     public partial Task<SecureCryptoResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token = default)
@@ -32,4 +31,3 @@ partial class BiometricCryptoService
         throw new NotImplementedException();
     }
 }
-#endif
