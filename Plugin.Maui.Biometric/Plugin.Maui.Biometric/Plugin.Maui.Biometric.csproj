@@ -45,19 +45,34 @@
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<ItemGroup>
-		<None Remove="Platforms\Android\" />
-		<None Remove="Platforms\iOS\" />
-		<None Remove="Platforms\Windows\" />
-		<None Remove="Platforms\MacCatalyst\" />
 		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
-	<ItemGroup>
-		<Folder Include="Platforms\Android\" />
-		<Folder Include="Platforms\iOS\" />
-		<Folder Include="Platforms\MacCatalyst\" />
-		<Folder Include="Platforms\Windows\" />
+
+	<!-- Android -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0-android')) != true">
+		<Compile Remove="**\*.android.cs" />
+		<None Include="**\*.android.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+		<Compile Remove="**\Android\**\*.cs" />
+		<None Include="**\Android\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />  
 	</ItemGroup>
+
+	<!-- Both iOS and Mac Catalyst -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0-ios')) != true AND $(TargetFramework.StartsWith('net9.0-maccatalyst')) != true">
+		<Compile Remove="**\*.apple.cs" />
+		<None Include="**\*.apple.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+		<Compile Remove="**\Apple\**\*.cs" />
+		<None Include="**\Apple\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
+
+	<!-- Windows -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-windows')) != true">
+		<Compile Remove="**\*.windows.cs" />
+		<None Include="**\*.windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+		<Compile Remove="**\Windows\**\*.cs" />
+		<None Include="**\Windows\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />  
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
 	</ItemGroup>
