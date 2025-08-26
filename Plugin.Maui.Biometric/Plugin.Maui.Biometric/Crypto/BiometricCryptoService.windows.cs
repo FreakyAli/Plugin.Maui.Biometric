@@ -2,14 +2,14 @@ namespace Plugin.Maui.Biometric;
 
 internal partial class BiometricCryptoService
 {
-    public partial Task CreateKeyAsync(string keyId, CryptoKeyOptions options, CancellationToken token)
+    public partial Task<KeyOperationResult> CreateKeyAsync(string keyId, CryptoKeyOptions options)
     { 
-        return Task.CompletedTask;
+        return Task.FromResult(new KeyOperationResult());
     }  
 
-    public partial Task DeleteKeyAsync(string keyId)
+    public partial Task<KeyOperationResult> DeleteKeyAsync(string keyId)
     {
-        return Task.CompletedTask;
+        return Task.FromResult(new KeyOperationResult());
     }
 
     public partial Task<bool> KeyExistsAsync(string keyId)

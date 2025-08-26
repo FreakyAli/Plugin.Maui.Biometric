@@ -4,11 +4,25 @@ using AndroidX.Core.Content;
 using AndroidX.Biometric;
 using Activity = AndroidX.AppCompat.App.AppCompatActivity;
 using Android.Content.PM;
+using Java.Util.Concurrent;
 
 namespace Plugin.Maui.Biometric;
 
 internal partial class BiometricService
 {
+    private const string ActivityErrorMsg = """
+    Your Platform.CurrentActivity either returned null 
+    or is not of type `AndroidX.AppCompat.App.AppCompatActivity`, 
+    ensure your Activity is of the right type and that 
+    its not null when you call this method
+    """;
+
+    private const string ExecutorErrorMsg = """
+    Your Platform.CurrentActivity's main executor could not be obtained, 
+    ensure your Activity is of the right type and that 
+    its not null when you call this method
+    """;
+
     public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
     {
         if (Platform.CurrentActivity is not Activity activity)
@@ -64,7 +78,17 @@ internal partial class BiometricService
                 return new AuthenticationResponse
                 {
                     Status = BiometricResponseStatus.Failure,
-                    ErrorMsg = "Your Platform.CurrentActivity either returned null or is not of type `AndroidX.AppCompat.App.AppCompatActivity`, ensure your Activity is of the right type and that its not null when you call this method"
+                    ErrorMsg = ActivityErrorMsg
+                };
+            }
+            var activityExecutor = ContextCompat.GetMainExecutor(activity);
+            if (activityExecutor is not IExecutor executor)
+            {
+                // Executor creation fails
+                return new AuthenticationResponse
+                {
+                    Status = BiometricResponseStatus.Failure,
+                    ErrorMsg = ExecutorErrorMsg
                 };
             }
 
@@ -88,7 +112,6 @@ internal partial class BiometricService
             }
 
             var promptInfo = allInfo.Build();
-            var executor = ContextCompat.GetMainExecutor(activity);
             var authCallback = new AuthCallback()
             {
                 Response = new TaskCompletionSource<AuthenticationResponse>()

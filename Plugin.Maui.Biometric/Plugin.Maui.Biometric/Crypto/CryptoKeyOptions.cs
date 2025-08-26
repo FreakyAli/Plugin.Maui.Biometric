@@ -3,22 +3,37 @@ namespace Plugin.Maui.Biometric;
 public class CryptoKeyOptions
 {
     /// <summary>
-    /// Operation type (Encrypt, Decrypt, Sign, Verify, MAC)
+    /// Algorithm to be used for the key. Defaults to AES.
+    /// </summary>
+    public KeyAlgorithm Algorithm { get; set; } = KeyAlgorithm.Aes;
+
+    /// <summary>
+    /// Intended operations for the key (Encrypt, Decrypt, Sign, Verify).
     /// </summary>
     public CryptoOperation Operation { get; set; }
 
     /// <summary>
-    /// Optional algorithm (e.g., AES, RSA, ECDSA)
+    /// Key size in bits. Default: 256 (AES-256).
     /// </summary>
-    public string? Algorithm { get; set; }
+    public int KeySize { get; set; } = 256;
 
     /// <summary>
-    /// Optional key size in bits
-    /// </summary>
-    public int? KeySize { get; set; }
-
-    /// <summary>
-    /// Optional flag for requiring biometric authentication to use the key
+    /// Require biometric or device authentication for usage.
     /// </summary>
     public bool RequireUserAuthentication { get; set; } = true;
+
+    /// <summary>
+    /// Block mode (CBC, GCM, etc). Default: CBC.
+    /// </summary>
+    public BlockMode BlockMode { get; set; } = BlockMode.Cbc;
+
+    /// <summary>
+    /// Padding scheme. Default: PKCS7.
+    /// </summary>
+    public Padding Padding { get; set; } = Padding.Pkcs7;
+
+    /// <summary>
+    /// Digest algorithm (for signatures). Default: SHA256.
+    /// </summary>
+    public Digest Digest { get; set; } = Digest.Sha256;
 }
