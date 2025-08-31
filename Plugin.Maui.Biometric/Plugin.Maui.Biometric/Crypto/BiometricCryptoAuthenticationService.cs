@@ -2,10 +2,10 @@ namespace Plugin.Maui.Biometric;
 
 public static class BiometricCryptoAuthenticationService
 {
-    private static readonly Lazy<IBiometricCrypto> defaultImpl =
+    private static readonly Lazy<ISecureBiometric> defaultImpl =
         new(() => new BiometricCryptoService(), LazyThreadSafetyMode.PublicationOnly);
 
-    public static IBiometricCrypto Default
+    public static ISecureBiometric Default
     {
         get => defaultImpl.Value;
     }

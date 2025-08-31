@@ -1,6 +1,6 @@
     namespace Plugin.Maui.Biometric;
 
-    public interface IBiometricCrypto
+    public interface ISecureBiometric
     {
         /// <summary>
         /// Create a hardware-backed key for future cryptographic operations.
@@ -24,7 +24,7 @@
         /// iOS/macOS: SecItemCopyMatching
         /// Windows: KeyCredentialManager.OpenAsync
         /// </summary>
-        Task<bool> KeyExistsAsync(string keyId);
+        Task<KeyOperationResult> KeyExistsAsync(string keyId);
 
         /// <summary>
         /// Encrypt input data using a hardware-backed key.

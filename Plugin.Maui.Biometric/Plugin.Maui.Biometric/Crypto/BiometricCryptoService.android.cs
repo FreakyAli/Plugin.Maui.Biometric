@@ -1,146 +1,108 @@
-using System.Reflection;
 using Android.Security.Keystore;
-using AndroidX.Biometric;
 using Java.Security;
-using Javax.Crypto;
 
 namespace Plugin.Maui.Biometric;
 
 internal partial class BiometricCryptoService
 {
-    internal static readonly string KeyStoreName = "AndroidKeyStore";
-
-    private static string MapKeyAlgorithm(KeyAlgorithm algorithm)
-    {
-        return algorithm switch
-        {
-            KeyAlgorithm.Aes => KeyProperties.KeyAlgorithmAes,
-            KeyAlgorithm.Rsa => KeyProperties.KeyAlgorithmRsa,
-            KeyAlgorithm.Ec => KeyProperties.KeyAlgorithmEc,
-            _ => KeyProperties.KeyAlgorithmAes // Default to AES
-        };
-    }
-
-    private static string MapTransformation(string keyAlgorithm, string blockMode, string encryptionPadding)
-    {
-        return $"{keyAlgorithm}/{blockMode}/{encryptionPadding}";
-    }
-
-    private static KeyStorePurpose MapPurpose(CryptoOperation operation)
-    {
-        KeyStorePurpose purpose = 0;
-
-        if (operation.HasFlag(CryptoOperation.Encrypt))
-            purpose |= KeyStorePurpose.Encrypt;
-
-        if (operation.HasFlag(CryptoOperation.Decrypt))
-            purpose |= KeyStorePurpose.Decrypt;
-
-        if (operation.HasFlag(CryptoOperation.Sign))
-            purpose |= KeyStorePurpose.Sign;
-
-        if (operation.HasFlag(CryptoOperation.Verify))
-            purpose |= KeyStorePurpose.Verify;
-
-        return purpose;
-    }
-
-    private static string MapBlockMode(BlockMode blockMode) =>
-        blockMode switch
-        {
-            BlockMode.Cbc => KeyProperties.BlockModeCbc,
-            BlockMode.Gcm => KeyProperties.BlockModeGcm,
-            BlockMode.Ctr => KeyProperties.BlockModeCtr,
-            BlockMode.Ecb => KeyProperties.BlockModeEcb,
-            _ => KeyProperties.BlockModeCbc // Default
-        };
-
-    private static string MapPadding(Padding padding) =>
-        padding switch
-        {
-            Padding.Pkcs7 => KeyProperties.EncryptionPaddingPkcs7,
-            Padding.Pkcs1 => KeyProperties.EncryptionPaddingRsaPkcs1,
-            Padding.Oaep => KeyProperties.EncryptionPaddingRsaOaep,
-            _ => KeyProperties.EncryptionPaddingPkcs7
-        };
-
-    private static string MapDigest(Digest digest) =>
-        digest switch
-        {
-            Digest.Sha1 => KeyProperties.DigestSha1,
-            Digest.Sha224 => KeyProperties.DigestSha224,
-            Digest.Sha256 => KeyProperties.DigestSha256,
-            Digest.Sha384 => KeyProperties.DigestSha384,
-            Digest.Sha512 => KeyProperties.DigestSha512,
-            _ => KeyProperties.DigestSha256 // default
-        };
-
     public partial Task<KeyOperationResult> CreateKeyAsync(string keyId, CryptoKeyOptions options)
     {
+        if (string.IsNullOrWhiteSpace(keyId))
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = "KeyId cannot be null or empty."
+            });
+        }
+
         if (options.Operation == 0)
         {
             return Task.FromResult(new KeyOperationResult
             {
                 Success = false,
-                ErrorMessage = "Operation must be specified."
+                ErrorMessage = "At least one operation must be specified."
             });
         }
 
-        // Check if key already exists
-        using var keyStore = KeyStore.GetInstance(KeyStoreName);
-        if (keyStore is null)
+        // Validate algorithm/mode/padding combinations
+        if (options.BlockMode == BlockMode.Gcm && options.Padding != Padding.None)
         {
             return Task.FromResult(new KeyOperationResult
             {
                 Success = false,
-                ErrorMessage = "Failed to create key generator"
+                ErrorMessage = "GCM mode cannot be used with padding. Set Padding to None."
             });
         }
 
-        keyStore.Load(null);
-        if (keyStore.ContainsAlias(keyId))
+        if (options.Algorithm == KeyAlgorithm.Ec && (options.Operation.HasFlag(CryptoOperation.Encrypt) || options.Operation.HasFlag(CryptoOperation.Decrypt)))
         {
             return Task.FromResult(new KeyOperationResult
             {
                 Success = false,
-                ErrorMessage = $"Key with alias '{keyId}' already exists."
+                ErrorMessage = "EC keys cannot be used for encrypt/decrypt operations. Use RSA or AES instead."
             });
         }
-
-        var keyAlgorithm = MapKeyAlgorithm(options.Algorithm);
-        var purpose = MapPurpose(options.Operation);
-
-        var keyGen = KeyGenerator.GetInstance(keyAlgorithm, KeyStoreName);
-        if (keyGen is null)
-        {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = "Failed to create key generator"
-            });
-        }
-        var keyGenSpecBuilder = new KeyGenParameterSpec.Builder(keyId, purpose)
-            .SetBlockModes(MapBlockMode(options.BlockMode))
-            .SetEncryptionPaddings(MapPadding(options.Padding))
-            .SetKeySize(options.KeySize)
-            .SetUserAuthenticationRequired(options.RequireUserAuthentication)
-            .SetInvalidatedByBiometricEnrollment(true);
-
-        // Apply digest if relevant (mainly for RSA/EC signing)
-        if (options.Digest != Digest.None)
-        {
-            keyGenSpecBuilder.SetDigests(MapDigest(options.Digest));
-        }
-
-        var keyGenSpec = keyGenSpecBuilder.Build();
-        keyGen.Init(keyGenSpec);
 
         try
         {
-            var result = keyGen.GenerateKey();
+            using var keyStore = KeyStore.GetInstance(AndroidKeyStoreHelpers.KeyStoreName);
+            if (keyStore == null)
+            {
+                return Task.FromResult(new KeyOperationResult
+                {
+                    Success = false,
+                    ErrorMessage = "Failed to access Android KeyStore."
+                });
+            }
+
+            keyStore.Load(null);
+
+            if (keyStore.ContainsAlias(keyId))
+            {
+                return Task.FromResult(new KeyOperationResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Key with alias '{keyId}' already exists."
+                });
+            }
+
+            var keyAlgorithm = AndroidKeyStoreHelpers.MapKeyAlgorithm(options.Algorithm);
+            var purpose = AndroidKeyStoreHelpers.MapPurpose(options.Operation);
+
+            // Try StrongBox first, then fall back
+            var result = AndroidKeyStoreHelpers.TryCreateKeyWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: true);
+            if (result.Success)
+            {
+                return Task.FromResult(result);
+            }
+
+            // If StrongBox failed, try without StrongBox (TEE/Software)
+            result = AndroidKeyStoreHelpers.TryCreateKeyWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: false);
+            return Task.FromResult(result);
+        }
+        catch (KeyStoreException ex)
+        {
             return Task.FromResult(new KeyOperationResult
             {
-                Success = true
+                Success = false,
+                ErrorMessage = $"KeyStore error while checking key '{keyId}': {ex.Message}"
+            });
+        }
+        catch (IOException ex)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"Storage I/O error: {ex.Message}"
+            });
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"Algorithm not supported: {ex.Message}"
             });
         }
         catch (Exception ex)
@@ -148,32 +110,43 @@ internal partial class BiometricCryptoService
             return Task.FromResult(new KeyOperationResult
             {
                 Success = false,
-                ErrorMessage = ex.Message + Environment.NewLine + ex.StackTrace
+                ErrorMessage = $"Unexpected error: {ex.Message}"
             });
         }
     }
 
     public partial Task<KeyOperationResult> DeleteKeyAsync(string keyId)
     {
+        if (string.IsNullOrWhiteSpace(keyId))
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = "KeyId cannot be null or empty."
+            });
+        }
+
         try
         {
-            using var keyStore = KeyStore.GetInstance(KeyStoreName);
-            if (keyStore is null)
+            using var keyStore = KeyStore.GetInstance(AndroidKeyStoreHelpers.KeyStoreName);
+            if (keyStore == null)
             {
                 return Task.FromResult(new KeyOperationResult
                 {
                     Success = false,
-                    ErrorMessage = "Failed to create key generator"
+                    ErrorMessage = "Failed to access Android KeyStore."
                 });
             }
+
             keyStore.Load(null);
 
             if (!keyStore.ContainsAlias(keyId))
             {
+                // Successful no-op - key already doesn't exist
                 return Task.FromResult(new KeyOperationResult
                 {
-                    Success = false,
-                    ErrorMessage = $"Key with alias '{keyId}' does not exist."
+                    Success = true,
+                    AdditionalInfo = $"Key '{keyId}' was already deleted or never existed."
                 });
             }
 
@@ -181,7 +154,32 @@ internal partial class BiometricCryptoService
 
             return Task.FromResult(new KeyOperationResult
             {
-                Success = true
+                Success = true,
+                AdditionalInfo = $"Key '{keyId}' successfully deleted."
+            });
+        }
+        catch (KeyStoreException ex)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"KeyStore error while checking key '{keyId}': {ex.Message}"
+            });
+        }
+        catch (IOException ex)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"Storage I/O error: {ex.Message}"
+            });
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"Algorithm not supported: {ex.Message}"
             });
         }
         catch (Exception ex)
@@ -189,27 +187,74 @@ internal partial class BiometricCryptoService
             return Task.FromResult(new KeyOperationResult
             {
                 Success = false,
-                ErrorMessage = ex.Message + Environment.NewLine + ex.StackTrace
+                ErrorMessage = $"Unexpected error: {ex.Message}"
             });
         }
     }
 
-    public partial Task<bool> KeyExistsAsync(string keyId)
+    public partial Task<KeyOperationResult> KeyExistsAsync(string keyId)
     {
+        if (string.IsNullOrWhiteSpace(keyId))
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = "KeyId cannot be null or empty."
+            });
+        }
+
         try
         {
-            using var keyStore = KeyStore.GetInstance(KeyStoreName);
-            if (keyStore is null)
+            using var keyStore = KeyStore.GetInstance(AndroidKeyStoreHelpers.KeyStoreName);
+            if (keyStore == null)
             {
-                return Task.FromResult(false);
+                return Task.FromResult(new KeyOperationResult
+                {
+                    Success = false,
+                    ErrorMessage = "Failed to access Android KeyStore."
+                });
             }
+
             keyStore.Load(null);
 
-            return Task.FromResult(keyStore.ContainsAlias(keyId));
+            var exists = keyStore.ContainsAlias(keyId);
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = exists,
+                AdditionalInfo = exists ? $"Key '{keyId}' exists." : $"Key '{keyId}' does not exist."
+            });
         }
-        catch
+        catch (KeyStoreException ex)
         {
-            return Task.FromResult(false);
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"KeyStore error while checking key '{keyId}': {ex.Message}"
+            });
+        }
+        catch (IOException ex)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"Storage I/O error: {ex.Message}"
+            });
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"Algorithm not supported: {ex.Message}"
+            });
+        }
+        catch (Exception ex)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"Unexpected error: {ex.Message}"
+            });
         }
     }
 
@@ -222,8 +267,6 @@ internal partial class BiometricCryptoService
         if (inputData is null || inputData.Length == 0)
             return Task.FromResult(SecureCryptoResponse.Failed("Input data cannot be null or empty."));
 
-        
-
         return Task.FromResult(SecureCryptoResponse.Failed("Key not found or operation canceled."));
     }
 
@@ -235,7 +278,6 @@ internal partial class BiometricCryptoService
         if (inputData is null || inputData.Length == 0)
             return Task.FromResult(SecureCryptoResponse.Failed("Input data cannot be null or empty."));
 
-        
         return Task.FromResult(SecureCryptoResponse.Failed("Key not found or operation canceled."));
     }
 

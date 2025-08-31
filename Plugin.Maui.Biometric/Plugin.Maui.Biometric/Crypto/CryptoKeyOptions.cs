@@ -23,14 +23,14 @@ public class CryptoKeyOptions
     public bool RequireUserAuthentication { get; set; } = true;
 
     /// <summary>
-    /// Block mode (CBC, GCM, etc). Default: CBC.
+    /// Block mode (CBC, GCM, etc). Default: GCM.
     /// </summary>
-    public BlockMode BlockMode { get; set; } = BlockMode.Cbc;
+    public BlockMode BlockMode { get; set; } = BlockMode.Gcm;
 
     /// <summary>
-    /// Padding scheme. Default: PKCS7.
+    /// Padding scheme. Default: None.
     /// </summary>
-    public Padding Padding { get; set; } = Padding.Pkcs7;
+   public Padding Padding { get; set; } = Padding.None;
 
     /// <summary>
     /// Digest algorithm (for signatures). Default: SHA256.

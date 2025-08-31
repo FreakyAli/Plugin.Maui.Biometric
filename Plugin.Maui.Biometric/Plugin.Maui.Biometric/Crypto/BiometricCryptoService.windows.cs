@@ -12,9 +12,13 @@ internal partial class BiometricCryptoService
         return Task.FromResult(new KeyOperationResult());
     }
 
-    public partial Task<bool> KeyExistsAsync(string keyId)
+    public partial Task<KeyOperationResult> KeyExistsAsync(string keyId)
     { 
-        return Task.FromResult(false);
+        return Task.FromResult(new KeyOperationResult
+        {
+            Success = false,
+            ErrorMessage = "Key existence check not implemented."
+        });
     }
 
     public partial Task<SecureCryptoResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token)

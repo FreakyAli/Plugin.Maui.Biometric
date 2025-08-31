@@ -11,7 +11,7 @@ partial class BiometricCryptoService
         throw new NotImplementedException();
     }
 
-    public partial Task<bool> KeyExistsAsync(string keyId)
+    public partial Task<KeyOperationResult> KeyExistsAsync(string keyId)
     { 
         throw new NotImplementedException();
     }
