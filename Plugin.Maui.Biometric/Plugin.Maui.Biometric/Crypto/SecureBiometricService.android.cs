@@ -259,61 +259,61 @@ internal partial class SecureBiometricService
     }
 
 
-    public partial Task<SecureCryptoResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureCryptoResponse.Failed("KeyId cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("KeyId cannot be null or empty."));
 
         if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureCryptoResponse.Failed("Input data cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("Input data cannot be null or empty."));
 
-        return Task.FromResult(SecureCryptoResponse.Failed("Key not found or operation canceled."));
+        return Task.FromResult(SecureAuthenticationResponse.Failed("Key not found or operation canceled."));
     }
 
-    public partial Task<SecureCryptoResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureCryptoResponse.Failed("KeyId cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("KeyId cannot be null or empty."));
 
         if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureCryptoResponse.Failed("Input data cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("Input data cannot be null or empty."));
 
-        return Task.FromResult(SecureCryptoResponse.Failed("Key not found or operation canceled."));
+        return Task.FromResult(SecureAuthenticationResponse.Failed("Key not found or operation canceled."));
     }
 
-    public partial Task<SecureCryptoResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureCryptoResponse.Failed("KeyId cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("KeyId cannot be null or empty."));
 
         if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureCryptoResponse.Failed("Input data cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("Input data cannot be null or empty."));
 
-        return Task.FromResult(SecureCryptoResponse.Failed("Key not found or operation canceled."));
+        return Task.FromResult(SecureAuthenticationResponse.Failed("Key not found or operation canceled."));
     }
 
-    public partial Task<SecureCryptoResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureCryptoResponse.Failed("KeyId cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("KeyId cannot be null or empty."));
 
         if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureCryptoResponse.Failed("Input data cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("Input data cannot be null or empty."));
 
-        return Task.FromResult(SecureCryptoResponse.Failed("Key not found or operation canceled."));
+        return Task.FromResult(SecureAuthenticationResponse.Failed("Key not found or operation canceled."));
     }
 
-    public partial Task<SecureCryptoResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureCryptoResponse.Failed("KeyId cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("KeyId cannot be null or empty."));
 
         if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureCryptoResponse.Failed("Input data cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("Input data cannot be null or empty."));
 
         if (signature is null || signature.Length == 0)
-            return Task.FromResult(SecureCryptoResponse.Failed("Signature cannot be null or empty."));
+            return Task.FromResult(SecureAuthenticationResponse.Failed("Signature cannot be null or empty."));
 
-        return Task.FromResult(SecureCryptoResponse.Failed("Key not found or operation canceled."));
+        return Task.FromResult(SecureAuthenticationResponse.Failed("Key not found or operation canceled."));
     }
 }

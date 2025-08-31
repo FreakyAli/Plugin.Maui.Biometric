@@ -32,7 +32,7 @@
         /// iOS/macOS: SecKeyCreateEncryptedData
         /// Windows: CryptographicEngine.EncryptAsync
         /// </summary>
-        Task<SecureCryptoResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token);
+        Task<SecureAuthenticationResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token);
 
         /// <summary>
         /// Decrypt input data using a hardware-backed key.
@@ -40,7 +40,7 @@
         /// iOS/macOS: SecKeyCreateDecryptedData
         /// Windows: CryptographicEngine.DecryptAsync
         /// </summary>
-        Task<SecureCryptoResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token);
+        Task<SecureAuthenticationResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token);
 
         /// <summary>
         /// Sign input data using a hardware-backed key.
@@ -48,7 +48,7 @@
         /// iOS/macOS: SecKeyCreateSignature
         /// Windows: CryptographicEngine.SignAsync
         /// </summary>
-        Task<SecureCryptoResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token);
+        Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token);
 
         /// <summary>
         /// Verify signature against input data using a hardware-backed key.
@@ -56,7 +56,7 @@
         /// iOS/macOS: SecKeyVerifySignature
         /// Windows: CryptographicEngine.VerifySignatureAsync
         /// </summary>
-        Task<SecureCryptoResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token);
+        Task<SecureAuthenticationResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token);
 
         /// <summary>
         /// Compute a MAC (message authentication code) on input data using a hardware-backed key.
@@ -64,5 +64,5 @@
         /// iOS/macOS: CCHmac or SecKey operations
         /// Windows: CryptographicEngine.SignAsync with HMAC key
         /// </summary>
-        Task<SecureCryptoResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token);
+        Task<SecureAuthenticationResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token);
     }

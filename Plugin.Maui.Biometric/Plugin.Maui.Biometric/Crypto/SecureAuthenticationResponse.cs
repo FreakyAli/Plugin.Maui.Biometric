@@ -1,23 +1,23 @@
 namespace Plugin.Maui.Biometric;
 
-public sealed class SecureCryptoResponse
+public sealed class SecureAuthenticationResponse
 {
     public bool WasSuccessful { get; set; }
     public byte[]? OutputData { get; set; }
     public string? ErrorMessage { get; set; }
 
-    public static SecureCryptoResponse Success(byte[] outputData)
+    public static SecureAuthenticationResponse Success(byte[] outputData)
     {
-        return new SecureCryptoResponse
+        return new SecureAuthenticationResponse
         {
             WasSuccessful = true,
             OutputData = outputData
         };
     }
 
-    public static SecureCryptoResponse Failed(string errorMessage)
+    public static SecureAuthenticationResponse Failed(string errorMessage)
     {
-        return new SecureCryptoResponse
+        return new SecureAuthenticationResponse
         {
             WasSuccessful = false,
             ErrorMessage = errorMessage

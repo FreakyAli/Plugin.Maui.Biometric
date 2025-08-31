@@ -10,19 +10,6 @@ namespace Plugin.Maui.Biometric;
 
 internal partial class BiometricService
 {
-    private const string ActivityErrorMsg = """
-    Your Platform.CurrentActivity either returned null 
-    or is not of type `AndroidX.AppCompat.App.AppCompatActivity`, 
-    ensure your Activity is of the right type and that 
-    its not null when you call this method
-    """;
-
-    private const string ExecutorErrorMsg = """
-    Your Platform.CurrentActivity's main executor could not be obtained, 
-    ensure your Activity is of the right type and that 
-    its not null when you call this method
-    """;
-
     public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
     {
         if (Platform.CurrentActivity is not Activity activity)
@@ -78,7 +65,7 @@ internal partial class BiometricService
                 return new AuthenticationResponse
                 {
                     Status = BiometricResponseStatus.Failure,
-                    ErrorMsg = ActivityErrorMsg
+                    ErrorMsg = BiometricPromptHelpers.ActivityErrorMsg
                 };
             }
             var activityExecutor = ContextCompat.GetMainExecutor(activity);
@@ -88,7 +75,7 @@ internal partial class BiometricService
                 return new AuthenticationResponse
                 {
                     Status = BiometricResponseStatus.Failure,
-                    ErrorMsg = ExecutorErrorMsg
+                    ErrorMsg = BiometricPromptHelpers.ExecutorErrorMsg
                 };
             }
 

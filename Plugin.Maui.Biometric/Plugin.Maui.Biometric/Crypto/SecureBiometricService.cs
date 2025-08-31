@@ -12,17 +12,17 @@ internal sealed partial class SecureBiometricService : ISecureBiometric
     public partial Task<KeyOperationResult> KeyExistsAsync(string keyId);
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface abstraction requires instance method.")]
-    public partial Task<SecureCryptoResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token);
+    public partial Task<SecureAuthenticationResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token);
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface abstraction requires instance method.")]
-    public partial Task<SecureCryptoResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token);
+    public partial Task<SecureAuthenticationResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token);
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface abstraction requires instance method.")]
-    public partial Task<SecureCryptoResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token);
+    public partial Task<SecureAuthenticationResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token);
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface abstraction requires instance method.")]
-    public partial Task<SecureCryptoResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token); 
+    public partial Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token); 
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface abstraction requires instance method.")]
-    public partial Task<SecureCryptoResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token);
+    public partial Task<SecureAuthenticationResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token);
 }

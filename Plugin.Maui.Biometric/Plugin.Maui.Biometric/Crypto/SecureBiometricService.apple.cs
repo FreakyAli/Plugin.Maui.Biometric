@@ -16,28 +16,28 @@ internal partial class SecureBiometricService
         return Task.FromResult(new KeyOperationResult());
     }
 
-    public partial Task<SecureCryptoResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token)
     {
-        return Task.FromResult(new SecureCryptoResponse());
+        return Task.FromResult(new SecureAuthenticationResponse());
     }
 
-    public partial Task<SecureCryptoResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token)
     {
-        return Task.FromResult(new SecureCryptoResponse());
+        return Task.FromResult(new SecureAuthenticationResponse());
     }   
 
-    public partial Task<SecureCryptoResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token)
     {
-        return Task.FromResult(new SecureCryptoResponse());
+        return Task.FromResult(new SecureAuthenticationResponse());
     }
 
-    public partial Task<SecureCryptoResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token)
     {
-        return Task.FromResult(new SecureCryptoResponse());
+        return Task.FromResult(new SecureAuthenticationResponse());
     }
 
-    public partial Task<SecureCryptoResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token)
     {
-        return Task.FromResult(new SecureCryptoResponse());
+        return Task.FromResult(new SecureAuthenticationResponse());
     }
 }
