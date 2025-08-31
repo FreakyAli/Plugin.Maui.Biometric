@@ -223,6 +223,7 @@ internal class AndroidKeyStoreHelpers
     internal static string MapPadding(Padding padding) =>
         padding switch
         {
+            Padding.None => KeyProperties.EncryptionPaddingNone,
             Padding.Pkcs7 => KeyProperties.EncryptionPaddingPkcs7,
             Padding.Pkcs1 => KeyProperties.EncryptionPaddingRsaPkcs1,
             Padding.Oaep => KeyProperties.EncryptionPaddingRsaOaep,
