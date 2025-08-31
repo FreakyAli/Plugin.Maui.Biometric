@@ -1,6 +1,6 @@
 namespace Plugin.Maui.Biometric;
 
-internal partial class BiometricCryptoService : ISecureBiometric
+internal sealed partial class SecureBiometricService : ISecureBiometric
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface abstraction requires instance method.")]
     public partial Task<KeyOperationResult> CreateKeyAsync(string keyId, CryptoKeyOptions options);  

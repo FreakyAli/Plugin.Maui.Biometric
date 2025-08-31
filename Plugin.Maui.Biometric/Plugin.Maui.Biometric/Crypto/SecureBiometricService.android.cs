@@ -3,7 +3,7 @@ using Java.Security;
 
 namespace Plugin.Maui.Biometric;
 
-internal partial class BiometricCryptoService
+internal partial class SecureBiometricService
 {
     public partial Task<KeyOperationResult> CreateKeyAsync(string keyId, CryptoKeyOptions options)
     {

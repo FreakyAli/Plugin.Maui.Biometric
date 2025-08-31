@@ -1,6 +1,6 @@
 namespace Plugin.Maui.Biometric;
 
-internal partial class BiometricService : IBiometric
+internal sealed partial class BiometricService : IBiometric
 {
     public bool IsPlatformSupported { get; } = GetIsPlatformSupported();
 

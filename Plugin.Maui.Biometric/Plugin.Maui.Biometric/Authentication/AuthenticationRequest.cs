@@ -1,6 +1,6 @@
 ﻿namespace Plugin.Maui.Biometric;
 
-public class AuthenticationRequest
+public sealed class AuthenticationRequest
 {
     public bool AllowPasswordAuth { get; set; }
     public string Title { get; set; }

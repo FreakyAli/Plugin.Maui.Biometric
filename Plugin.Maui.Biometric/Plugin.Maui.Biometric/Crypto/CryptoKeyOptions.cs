@@ -1,6 +1,6 @@
 namespace Plugin.Maui.Biometric;
 
-public class CryptoKeyOptions
+public sealed class CryptoKeyOptions
 {
     /// <summary>
     /// Algorithm to be used for the key. Defaults to AES.
