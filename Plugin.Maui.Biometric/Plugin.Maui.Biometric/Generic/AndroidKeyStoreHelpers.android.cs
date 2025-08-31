@@ -119,62 +119,51 @@ internal class AndroidKeyStoreHelpers
         }
     }
 
+    internal static string GetVersionBasedSecurityLevel(IKey? key, bool strongBoxAttempted)
+    {
+        if (key is ISecretKey secretKey)
+        {
+            var keyFactory = SecretKeyFactory.GetInstance(secretKey.Algorithm, KeyStoreName);
+            var keySpec = keyFactory?.GetKeySpec(secretKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
+            if (keySpec is KeyInfo keyInfo)
+            {
+                if (OperatingSystem.IsAndroidVersionAtLeast(31))
+                {
+                    return keyInfo.SecurityLevel switch
+                    {
+                        1 => "StrongBox",
+                        2 => "TEE",
+                        _ => "Software"
+                    };
+                }
+                else
+                {
+                    var isHardwareBacked = keyInfo.IsInsideSecureHardware;
+                    if (strongBoxAttempted && isHardwareBacked)
+                        return "Hardware-backed (likely StrongBox)";
+                    else if (isHardwareBacked)
+                        return "Hardware-backed (TEE/StrongBox)";
+                    else
+                        return "Software";
+                }
+            }
+        }
+        return "Unknown";
+    }
+
     internal static string GetActualSecurityLevel(string keyId, bool strongBoxAttempted)
     {
         try
         {
-            if (OperatingSystem.IsAndroidVersionAtLeast(31))
-            {
-                // API 31+: Can get exact security level
-                using var keyStore = KeyStore.GetInstance(KeyStoreName);
-                keyStore?.Load(null);
-
-                var key = keyStore?.GetKey(keyId, null);
-                if (key is ISecretKey secretKey)
-                {
-                    var keyFactory = SecretKeyFactory.GetInstance(secretKey.Algorithm, KeyStoreName);
-                    var keySpec = keyFactory?.GetKeySpec(secretKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
-                    if (keySpec is KeyInfo keyInfo)
-                    {
-                        return keyInfo.SecurityLevel switch
-                        {
-                            1 => "StrongBox",
-                            2 => "TEE",
-                            _ => "Software"
-                        };
-                    }
-                }
-            }
-            else
-            {
-                // API 26-30: Best guess approach
-                using var keyStore = KeyStore.GetInstance(KeyStoreName);
-                keyStore?.Load(null);
-
-                var key = keyStore?.GetKey(keyId, null);
-                if (key is ISecretKey secretKey)
-                {
-                    var keyFactory = SecretKeyFactory.GetInstance(secretKey.Algorithm, KeyStoreName);
-                    var keySpec = keyFactory?.GetKeySpec(secretKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
-                    if (keySpec is KeyInfo keyInfo)
-                    {
-                        var isHardwareBacked = keyInfo.IsInsideSecureHardware;
-                        if (strongBoxAttempted && isHardwareBacked)
-                            return "Hardware-backed (likely StrongBox)";
-                        else if (isHardwareBacked)
-                            return "Hardware-backed (TEE/StrongBox)";
-                        else
-                            return "Software";
-                    }
-                }
-            }
+            using var keyStore = KeyStore.GetInstance(KeyStoreName);
+            keyStore?.Load(null);
+            var key = keyStore?.GetKey(keyId, null);
+            return GetVersionBasedSecurityLevel(key, strongBoxAttempted);
         }
         catch
         {
             return "Unknown";
         }
-
-        return "Unknown";
     }
 
     internal static string MapKeyAlgorithm(KeyAlgorithm algorithm)
