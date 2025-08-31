@@ -83,7 +83,7 @@ internal class AndroidKeyStoreHelpers
                 AdditionalInfo = securityMessage
             };
         }
-        catch (Java.Security.ProviderException ex) when (ex.Message?.Contains("StrongBox") == true)
+        catch (ProviderException ex) when (ex.Message?.Contains("StrongBox") == true)
         {
             if (preferStrongBox)
             {
@@ -99,6 +99,14 @@ internal class AndroidKeyStoreHelpers
             {
                 Success = false,
                 ErrorMessage = $"Key creation failed: {ex.Message}"
+            };
+        }
+        catch (InvalidAlgorithmParameterException ex)
+        {
+            return new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = $"Invalid parameters for '{keyAlgorithm}': {ex.Message}"
             };
         }
         catch (KeyStoreException ex)
@@ -131,8 +139,9 @@ internal class AndroidKeyStoreHelpers
                 {
                     return keyInfo.SecurityLevel switch
                     {
-                        1 => "StrongBox",
-                        2 => "TEE",
+                        2 => "StrongBox",
+                        1 => "TEE",
+                        0 => "Software",
                         _ => "Software"
                     };
                 }
@@ -208,7 +217,7 @@ internal class AndroidKeyStoreHelpers
             BlockMode.Gcm => KeyProperties.BlockModeGcm,
             BlockMode.Ctr => KeyProperties.BlockModeCtr,
             BlockMode.Ecb => KeyProperties.BlockModeEcb,
-            _ => KeyProperties.BlockModeCbc // Default
+            _ => KeyProperties.BlockModeGcm // Default
         };
 
     internal static string MapPadding(Padding padding) =>
@@ -217,7 +226,7 @@ internal class AndroidKeyStoreHelpers
             Padding.Pkcs7 => KeyProperties.EncryptionPaddingPkcs7,
             Padding.Pkcs1 => KeyProperties.EncryptionPaddingRsaPkcs1,
             Padding.Oaep => KeyProperties.EncryptionPaddingRsaOaep,
-            _ => KeyProperties.EncryptionPaddingPkcs7
+            _ => KeyProperties.EncryptionPaddingNone
         };
 
     internal static string MapDigest(Digest digest) =>

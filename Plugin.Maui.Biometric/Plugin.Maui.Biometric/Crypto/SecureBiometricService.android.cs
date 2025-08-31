@@ -16,6 +16,15 @@ internal partial class SecureBiometricService
             });
         }
 
+        if (options is null)
+        {
+            return Task.FromResult(new KeyOperationResult
+            {
+                Success = false,
+                ErrorMessage = "Options cannot be null."
+            });
+        }
+
         if (options.Operation == 0)
         {
             return Task.FromResult(new KeyOperationResult
