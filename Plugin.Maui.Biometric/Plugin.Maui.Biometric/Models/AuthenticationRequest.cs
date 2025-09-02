@@ -1,6 +1,5 @@
-﻿namespace Plugin.Maui.Biometric;
+namespace Plugin.Maui.Biometric;
 
 public sealed class AuthenticationRequest: BaseAuthenticationRequest
 {
-    
 }
