@@ -16,12 +16,12 @@ partial class SecureBiometricService
         throw new NotImplementedException();
     }
     
-    public partial Task<SecureAuthenticationResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> DecryptAsync(SecureAuthenticationRequest request, CancellationToken token)
     {
         throw new NotImplementedException();
     }
 
-    public partial Task<SecureAuthenticationResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> EncryptAsync(SecureAuthenticationRequest request, CancellationToken token)
     {
         throw new NotImplementedException();
     }

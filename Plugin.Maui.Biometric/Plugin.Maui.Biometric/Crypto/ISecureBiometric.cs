@@ -32,7 +32,7 @@
         /// iOS/macOS: SecKeyCreateEncryptedData
         /// Windows: CryptographicEngine.EncryptAsync
         /// </summary>
-        Task<SecureAuthenticationResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token);
+        Task<SecureAuthenticationResponse> EncryptAsync(SecureAuthenticationRequest request, CancellationToken token);
 
         /// <summary>
         /// Decrypt input data using a hardware-backed key.
@@ -40,7 +40,7 @@
         /// iOS/macOS: SecKeyCreateDecryptedData
         /// Windows: CryptographicEngine.DecryptAsync
         /// </summary>
-        Task<SecureAuthenticationResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token);
+        Task<SecureAuthenticationResponse> DecryptAsync(SecureAuthenticationRequest request, CancellationToken token);
 
         /// <summary>
         /// Sign input data using a hardware-backed key.

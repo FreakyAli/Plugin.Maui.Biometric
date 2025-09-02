@@ -36,7 +36,9 @@ internal class AndroidKeyStoreHelpers
                 // There's no way to restrict to biometric-only in the KeyStore on API 26-29
                 if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
                 {
+#pragma warning disable CA1422
                     keyGenSpecBuilder.SetUserAuthenticationValidityDurationSeconds(-1);
+#pragma warning restore CA1422
                 }
             }
 

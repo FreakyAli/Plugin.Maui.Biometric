@@ -1,4 +1,3 @@
-using Android.Security.Keystore;
 using Java.Security;
 
 namespace Plugin.Maui.Biometric;
@@ -268,23 +267,23 @@ internal partial class SecureBiometricService
     }
 
 
-    public partial Task<SecureAuthenticationResponse> EncryptAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> EncryptAsync(SecureAuthenticationRequest request, CancellationToken token)
     {
-        if (string.IsNullOrWhiteSpace(keyId))
+        if (string.IsNullOrWhiteSpace(request.KeyId))
             return Task.FromResult(SecureAuthenticationResponse.Failed("KeyId cannot be null or empty."));
 
-        if (inputData is null || inputData.Length == 0)
+        if (request.InputData is null || request.InputData.Length == 0)
             return Task.FromResult(SecureAuthenticationResponse.Failed("Input data cannot be null or empty."));
 
         return Task.FromResult(SecureAuthenticationResponse.Failed("Key not found or operation canceled."));
     }
 
-    public partial Task<SecureAuthenticationResponse> DecryptAsync(string keyId, byte[] inputData, CancellationToken token)
+    public partial Task<SecureAuthenticationResponse> DecryptAsync(SecureAuthenticationRequest request, CancellationToken token)
     {
-        if (string.IsNullOrWhiteSpace(keyId))
+        if (string.IsNullOrWhiteSpace(request.KeyId))
             return Task.FromResult(SecureAuthenticationResponse.Failed("KeyId cannot be null or empty."));
 
-        if (inputData is null || inputData.Length == 0)
+        if (request.InputData is null || request.InputData.Length == 0)
             return Task.FromResult(SecureAuthenticationResponse.Failed("Input data cannot be null or empty."));
 
         return Task.FromResult(SecureAuthenticationResponse.Failed("Key not found or operation canceled."));

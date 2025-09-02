@@ -78,6 +78,9 @@
 		<Compile Remove="**\*.net.cs" />
 		<None Include="**\*.net.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Compile Include="Crypto/Test.android.cs" />
+	</ItemGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
