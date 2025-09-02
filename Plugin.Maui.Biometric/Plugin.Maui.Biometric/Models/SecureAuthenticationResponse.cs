@@ -15,7 +15,7 @@ public sealed class SecureAuthenticationResponse
         };
     }
 
-    public static SecureAuthenticationResponse Failed(string errorMessage)
+    public static SecureAuthenticationResponse Failure(string errorMessage)
     {
         return new SecureAuthenticationResponse
         {

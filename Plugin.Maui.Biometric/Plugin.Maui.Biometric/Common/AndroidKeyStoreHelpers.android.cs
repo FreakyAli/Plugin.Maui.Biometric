@@ -1,12 +1,104 @@
-using Android.Security.Keystore;
+using AndroidX.Core.Content;
 using Java.Security;
+using Java.Util.Concurrent;
 using Javax.Crypto;
+using BiometricPrompt = AndroidX.Biometric.BiometricPrompt;
+using Platform = Microsoft.Maui.ApplicationModel.Platform;
+using Activity = AndroidX.AppCompat.App.AppCompatActivity;
+using BiometricManager = AndroidX.Biometric.BiometricManager;
+using Android.Security.Keystore;
 
 namespace Plugin.Maui.Biometric;
 
 internal class AndroidKeyStoreHelpers
 {
     internal static readonly string KeyStoreName = "AndroidKeyStore";
+
+    internal static async Task<SecureAuthenticationResponse> ProcessCryptoAsync(SecureAuthenticationRequest request, CipherMode mode, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(request.KeyId))
+            return SecureAuthenticationResponse.Failure("Key ID cannot be null or empty");
+
+        if (string.IsNullOrWhiteSpace(request.Transformation))
+            return SecureAuthenticationResponse.Failure("Transformation cannot be null or empty");
+
+        if (request.InputData == null || request.InputData.Length == 0)
+            return SecureAuthenticationResponse.Failure("Input data cannot be null or empty");
+
+        try
+        {
+            using var keyStore = KeyStore.GetInstance(KeyStoreName);
+            if (keyStore == null)
+                return SecureAuthenticationResponse.Failure("Failed to access Android KeyStore.");
+
+            keyStore.Load(null);
+            if (!keyStore.ContainsAlias(request.KeyId))
+                return SecureAuthenticationResponse.Failure($"Key with alias '{request.KeyId}' does not exist.");
+
+            using var key = keyStore.GetKey(request.KeyId, null);
+            if (key == null)
+                return SecureAuthenticationResponse.Failure($"Key '{request.KeyId}' could not be retrieved from KeyStore");
+
+            using var cipher = Cipher.GetInstance(request.Transformation);
+            if (cipher == null)
+                return SecureAuthenticationResponse.Failure("Failed to create cipher.");
+            cipher.Init(mode, key);
+
+            if (Platform.CurrentActivity is not Activity activity)
+                return SecureAuthenticationResponse.Failure(BiometricPromptHelpers.ActivityErrorMsg);
+
+            var activityExecutor = ContextCompat.GetMainExecutor(activity);
+            if (activityExecutor is not IExecutor executor)
+                return SecureAuthenticationResponse.Failure(BiometricPromptHelpers.ExecutorErrorMsg);
+
+            var strength = request.AuthStrength.Equals(AuthenticatorStrength.Strong)
+                ? BiometricManager.Authenticators.BiometricStrong
+                : BiometricManager.Authenticators.BiometricWeak;
+
+            var allInfo = new BiometricPrompt.PromptInfo.Builder()
+                .SetTitle(request.Title)
+                .SetSubtitle(request.Subtitle)
+                .SetDescription(request.Description);
+
+            if (request.AllowPasswordAuth)
+            {
+                allInfo.SetAllowedAuthenticators(strength | BiometricManager.Authenticators.DeviceCredential);
+            }
+            else
+            {
+                allInfo.SetNegativeButtonText(request.NegativeText);
+                allInfo.SetAllowedAuthenticators(strength);
+            }
+
+            var promptInfo = allInfo.Build();
+            var authCallback = new SecureAuthCallback()
+            {
+                Request = request,
+                Response = new TaskCompletionSource<SecureAuthenticationResponse>()
+            };
+
+            using var biometricPrompt = new BiometricPrompt(activity, executor, authCallback);
+            using var cryptoObject = new BiometricPrompt.CryptoObject(cipher);
+            using (token.Register(() => biometricPrompt.CancelAuthentication()))
+            {
+                biometricPrompt.Authenticate(promptInfo, cryptoObject);
+                var response = await authCallback.Response.Task;
+                return response;
+            }
+        }
+        catch (UnrecoverableKeyException)
+        {
+            return SecureAuthenticationResponse.Failure("Key requires authentication but is not accessible");
+        }
+        catch (InvalidKeyException ex)
+        {
+            return SecureAuthenticationResponse.Failure($"Key '{request.KeyId}' is invalid for transformation '{request.Transformation}': {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            return SecureAuthenticationResponse.Failure($"{mode} failed: {ex.Message}");
+        }
+    }
 
     internal static KeyOperationResult TryCreateKeyWithSecurityLevel
                     (string keyId, string keyAlgorithm, KeyStorePurpose purpose,
@@ -141,9 +233,9 @@ internal class AndroidKeyStoreHelpers
                 {
                     return keyInfo.SecurityLevel switch
                     {
-                        2 => "StrongBox",
-                        1 => "TEE",
-                        0 => "Software",
+                        (int)KeyStoreSecurityLevel.Strongbox => "StrongBox",
+                        (int)KeyStoreSecurityLevel.TrustedEnvironment => "TEE",
+                        (int)KeyStoreSecurityLevel.Software => "Software",
                         _ => "Software"
                     };
                 }

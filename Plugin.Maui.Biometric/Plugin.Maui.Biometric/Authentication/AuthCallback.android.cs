@@ -2,6 +2,7 @@ using BiometricPrompt = AndroidX.Biometric.BiometricPrompt;
 using Java.Lang;
 
 namespace Plugin.Maui.Biometric;
+
 internal sealed class AuthCallback : BiometricPrompt.AuthenticationCallback
 {
     public required TaskCompletionSource<AuthenticationResponse> Response { get; set; }
@@ -30,6 +31,16 @@ internal sealed class AuthCallback : BiometricPrompt.AuthenticationCallback
         {
             Status = BiometricResponseStatus.Failure,
             ErrorMsg = $"Authentication failed, please try again later, error code:{errorCode} {errString}"
+        });
+    }
+
+    public override void OnAuthenticationFailed()
+    {
+        base.OnAuthenticationFailed();
+        Response.TrySetResult(new AuthenticationResponse
+        {
+            Status = BiometricResponseStatus.Failure,
+            ErrorMsg = "Biometric not recognized, try again"
         });
     }
 }
