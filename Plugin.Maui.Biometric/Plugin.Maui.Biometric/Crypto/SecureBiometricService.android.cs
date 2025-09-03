@@ -268,10 +268,10 @@ internal partial class SecureBiometricService
     }
 
     public partial Task<SecureAuthenticationResponse> EncryptAsync(SecureAuthenticationRequest request, CancellationToken token)
-        => AndroidKeyStoreHelpers.ProcessCryptoAsync(request, CipherMode.EncryptMode, token);
+        => BiometricPromptHelpers.ProcessCryptoAsync(request, CipherMode.EncryptMode, token);
 
     public partial async Task<SecureAuthenticationResponse> DecryptAsync(SecureAuthenticationRequest request, CancellationToken token)
-        => await AndroidKeyStoreHelpers.ProcessCryptoAsync(request, CipherMode.DecryptMode, token);
+        => await BiometricPromptHelpers.ProcessCryptoAsync(request, CipherMode.DecryptMode, token);
 
     public partial Task<SecureAuthenticationResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token)
     {

@@ -7,9 +7,12 @@ public sealed class SecureAuthenticationRequest : BaseAuthenticationRequest
     public KeyAlgorithm Algorithm { get; set; } = KeyAlgorithm.Aes;
     public BlockMode BlockMode { get; set; } = BlockMode.None;
     public Padding Padding { get; set; } = Padding.None;
+
+#if ANDROID
     internal string Transformation =>
     AndroidKeyStoreHelpers.MapTransformation(
         AndroidKeyStoreHelpers.MapKeyAlgorithm(Algorithm),
         AndroidKeyStoreHelpers.MapBlockMode(BlockMode),
         AndroidKeyStoreHelpers.MapPadding(Padding));
+#endif
 }
