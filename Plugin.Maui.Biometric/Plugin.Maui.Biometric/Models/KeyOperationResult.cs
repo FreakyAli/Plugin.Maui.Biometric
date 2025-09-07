@@ -6,6 +6,5 @@ public sealed class KeyOperationResult
     public string ErrorMessage { get; set; }
     public Exception? Exception { get; set; } 
     public string AdditionalInfo { get; set; }
-    internal bool ShouldRetry { get; set; } = true;
     internal string SecurityLevelName { get; set; }
 }

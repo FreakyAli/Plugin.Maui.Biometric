@@ -11,7 +11,7 @@ public sealed class SecureAuthenticationResponse
         return new SecureAuthenticationResponse
         {
             WasSuccessful = true,
-            OutputData = outputData
+            OutputData = (byte[])outputData.Clone()
         };
     }
 

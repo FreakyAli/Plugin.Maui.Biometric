@@ -26,11 +26,6 @@ partial class SecureBiometricService
         throw new NotImplementedException();
     }
 
-    public partial Task<SecureAuthenticationResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token)
-    {
-        throw new NotImplementedException();
-    }
-
     public partial Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token)
     {
         throw new NotImplementedException();

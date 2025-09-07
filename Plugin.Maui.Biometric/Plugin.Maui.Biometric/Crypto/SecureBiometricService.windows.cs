@@ -27,11 +27,6 @@ internal partial class SecureBiometricService
         return Task.FromResult(new SecureAuthenticationResponse());
     }   
 
-    public partial Task<SecureAuthenticationResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token)
-    {
-        return Task.FromResult(new SecureAuthenticationResponse());
-    }
-
     public partial Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token)
     {
         return Task.FromResult(new SecureAuthenticationResponse());

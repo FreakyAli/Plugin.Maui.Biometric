@@ -10,7 +10,7 @@ public sealed class CryptoKeyOptions
     /// <summary>
     /// Intended operations for the key (Encrypt, Decrypt, Sign, Verify).
     /// </summary>
-    public CryptoOperation Operation { get; set; }
+    public CryptoOperation Operation { get; set; } = CryptoOperation.Encrypt | CryptoOperation.Decrypt;
 
     /// <summary>
     /// Key size in bits. Default: 256 (AES-256).

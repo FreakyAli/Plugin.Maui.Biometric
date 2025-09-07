@@ -7,6 +7,7 @@ public sealed class SecureAuthenticationRequest : BaseAuthenticationRequest
     public KeyAlgorithm Algorithm { get; set; } = KeyAlgorithm.Aes;
     public BlockMode BlockMode { get; set; } = BlockMode.None;
     public Padding Padding { get; set; } = Padding.None;
+    public byte[]? IV { get; set; }
 
 #if ANDROID
     internal string Transformation =>

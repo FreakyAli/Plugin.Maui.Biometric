@@ -241,7 +241,7 @@ internal partial class SecureBiometricService
                 ErrorMessage = $"KeyStore error while checking key '{keyId}': {ex.Message}"
             });
         }
-        catch (IOException ex)
+        catch (Java.IO.IOException ex)
         {
             return Task.FromResult(new KeyOperationResult
             {
@@ -272,17 +272,6 @@ internal partial class SecureBiometricService
 
     public partial async Task<SecureAuthenticationResponse> DecryptAsync(SecureAuthenticationRequest request, CancellationToken token)
         => await BiometricPromptHelpers.ProcessCryptoAsync(request, CipherMode.DecryptMode, token);
-
-    public partial Task<SecureAuthenticationResponse> MacAsync(string keyId, byte[] inputData, CancellationToken token)
-    {
-        if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureAuthenticationResponse.Failure("KeyId cannot be null or empty."));
-
-        if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureAuthenticationResponse.Failure("Input data cannot be null or empty."));
-
-        return Task.FromResult(SecureAuthenticationResponse.Failure("Key not found or operation canceled."));
-    }
 
     public partial Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token)
     {

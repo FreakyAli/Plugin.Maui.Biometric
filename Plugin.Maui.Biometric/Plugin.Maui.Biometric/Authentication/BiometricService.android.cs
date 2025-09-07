@@ -109,7 +109,7 @@ internal partial class BiometricService
             using (token.Register(() => biometricPrompt.CancelAuthentication()))
             {
                 biometricPrompt.Authenticate(promptInfo);
-                var response = await authCallback.Response.Task;
+                var response = await authCallback.Response.Task.ConfigureAwait(false);;
                 return response;
             }
         }
