@@ -12,7 +12,7 @@ public abstract class BaseAuthenticationRequest
 #nullable restore
 
     /// <summary>
-    /// On Windows Platform with WindowsHello, this propery is used as a message for auth
+    /// On Windows Platform with Windows Hello, this property is used as a message for auth
     /// </summary>
     public string? Description { get; set; }
     public AuthenticatorStrength AuthStrength { get; set; }

@@ -61,7 +61,7 @@ internal class AndroidKeyStoreHelpers
             }
 
             // Try StrongBox if requested and supported (Android 9+)
-            if (preferStrongBox && OperatingSystem.IsAndroidVersionAtLeast(29))
+            if (preferStrongBox && OperatingSystem.IsAndroidVersionAtLeast(28))
             {
                 keyGenSpecBuilder.SetIsStrongBoxBacked(true);
             }
@@ -132,8 +132,8 @@ internal class AndroidKeyStoreHelpers
     {
         if (key is ISecretKey secretKey)
         {
-            var keyFactory = SecretKeyFactory.GetInstance(secretKey.Algorithm, KeyStoreName);
-            var keySpec = keyFactory?.GetKeySpec(secretKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
+            using var keyFactory = SecretKeyFactory.GetInstance(secretKey.Algorithm, KeyStoreName);
+            using var keySpec = keyFactory?.GetKeySpec(secretKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
             if (keySpec is KeyInfo keyInfo)
             {
                 if (OperatingSystem.IsAndroidVersionAtLeast(31))
