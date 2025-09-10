@@ -131,6 +131,10 @@ internal static class BiometricPromptHelpers
         {
             return SecureAuthenticationResponse.Failure("Key requires authentication but is not accessible");
         }
+        catch (InvalidAlgorithmParameterException ex)
+        {
+            return SecureAuthenticationResponse.Failure($"Invalid algorithm parameters: {ex.Message}");
+        }
         catch (InvalidKeyException ex)
         {
             return SecureAuthenticationResponse.Failure(

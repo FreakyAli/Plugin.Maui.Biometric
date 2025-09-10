@@ -2,8 +2,8 @@ namespace Plugin.Maui.Biometric;
 
 public sealed class SecureAuthenticationRequest : BaseAuthenticationRequest
 {
-    public string KeyId { get; set; }
-    public byte[] InputData { get; set; }
+    public required string KeyId { get; set; }
+    public required byte[] InputData { get; set; }
     public KeyAlgorithm Algorithm { get; set; } = KeyAlgorithm.Aes;
     public BlockMode BlockMode { get; set; } = BlockMode.None;
     public Padding Padding { get; set; } = Padding.None;

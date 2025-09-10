@@ -14,13 +14,20 @@ internal sealed class SecureAuthCallback : BiometricPrompt.AuthenticationCallbac
         base.OnAuthenticationSucceeded(result);
         try
         {
-            var cipherData = result?.CryptoObject?.Cipher?.DoFinal(Request.InputData);
+            var cipher = result.CryptoObject?.Cipher;
+            if (cipher is null)
+            {
+                Response.TrySetResult(SecureAuthenticationResponse.Failure("Missing CryptoObject.Cipher in authentication result."));
+                return;
+            }
+            var iv = cipher.GetIV();
+            var cipherData = cipher?.DoFinal(Request.InputData);
             if (cipherData is null || cipherData.Length == 0)
             {
                 Response.TrySetResult(SecureAuthenticationResponse.Failure("Failed to retrieve cipher data after successful authentication."));
                 return;
             }
-            var response = SecureAuthenticationResponse.Success(cipherData);
+            var response = SecureAuthenticationResponse.Success(cipherData, iv);
             Response.TrySetResult(response);
         }
         catch (System.Exception ex)

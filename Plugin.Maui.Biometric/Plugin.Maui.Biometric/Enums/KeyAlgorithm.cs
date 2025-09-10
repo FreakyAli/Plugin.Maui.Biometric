@@ -4,6 +4,5 @@ public enum KeyAlgorithm
 {
     Aes,
     Rsa,
-    Ec,
-    Hmac
+    Ec
 }
