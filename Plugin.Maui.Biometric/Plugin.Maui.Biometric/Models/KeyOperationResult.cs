@@ -9,7 +9,7 @@ public sealed class KeyOperationResult
     internal string? SecurityLevelName { get; set; }
 
     public static KeyOperationResult Success(string? securityLevelName = null, string? additionalInfo = null)
-    => new KeyOperationResult
+    => new()
     {
         WasSuccessful = true,
         SecurityLevelName = securityLevelName,
@@ -17,7 +17,7 @@ public sealed class KeyOperationResult
     };
 
     public static KeyOperationResult Failure(string errorMessage, string? additionalInfo = null)
-    => new KeyOperationResult
+    => new()
     {
         WasSuccessful = false,
         ErrorMessage = errorMessage,

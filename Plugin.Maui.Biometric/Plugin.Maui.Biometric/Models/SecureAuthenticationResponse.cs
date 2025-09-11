@@ -8,21 +8,17 @@ public sealed class SecureAuthenticationResponse
     public string? ErrorMessage { get; private set; }
 
     public static SecureAuthenticationResponse Success(byte[] outputData, byte[]? iv = null)
+    => new()
     {
-        return new SecureAuthenticationResponse
-        {
-            WasSuccessful = true,
-            OutputData = (byte[])outputData.Clone(),
-            IV = iv is null ? null : (byte[])iv.Clone()
-        };
-    }
+        WasSuccessful = true,
+        OutputData = (byte[])outputData.Clone(),
+        IV = iv is null ? null : (byte[])iv.Clone()
+    };
 
     public static SecureAuthenticationResponse Failure(string errorMessage)
+    => new()
     {
-        return new SecureAuthenticationResponse
-        {
-            WasSuccessful = false,
-            ErrorMessage = errorMessage
-        };
-    }
+        WasSuccessful = false,
+        ErrorMessage = errorMessage
+    };
 }

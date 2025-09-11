@@ -17,7 +17,7 @@ internal class AndroidKeyStoreHelpers
             using var keyGen = KeyGenerator.GetInstance(keyAlgorithm, KeyStoreName);
             if (keyGen == null)
             {
-                return new KeyOperationResult.Failure($"Failed to create key generator for algorithm {keyAlgorithm}.");
+                return KeyOperationResult.Failure($"Failed to create key generator for algorithm {keyAlgorithm}.");
             }
 
             var keyGenSpecBuilder = new KeyGenParameterSpec.Builder(keyId, purpose)
@@ -74,28 +74,28 @@ internal class AndroidKeyStoreHelpers
                 ? $"Key created with {securityLevelName} security (StrongBox {(securityLevelName == "StrongBox" ? "achieved" : "fell back")})"
                 : $"Key created with {securityLevelName} security";
 
-            return new KeyOperationResult.Success(securityLevelName, securityMessage);
+            return KeyOperationResult.Success(securityLevelName, securityMessage);
         }
         catch (ProviderException ex) when (ex.Message?.Contains("StrongBox") == true)
         {
             if (preferStrongBox)
             {
                 // StrongBox failed, caller should retry without it
-                return new KeyOperationResult.Failure($"StrongBox unavailable: {ex.GetFullMessage()}");
+                return KeyOperationResult.Failure($"StrongBox unavailable: {ex.GetFullMessage()}");
             }
-            return new KeyOperationResult.Failure($"Key creation failed: {ex.GetFullMessage()}");
+            return KeyOperationResult.Failure($"Key creation failed: {ex.GetFullMessage()}");
         }
         catch (InvalidAlgorithmParameterException ex)
         {
-            return new KeyOperationResult.Failure($"Invalid parameters for '{keyAlgorithm}': {ex.GetFullMessage()}");
+            return KeyOperationResult.Failure($"Invalid parameters for '{keyAlgorithm}': {ex.GetFullMessage()}");
         }
         catch (KeyStoreException ex)
         {
-            return new KeyOperationResult.Failure($"KeyStore error while checking key '{keyId}': {ex.GetFullMessage()}");
+            return KeyOperationResult.Failure($"KeyStore error while checking key '{keyId}': {ex.GetFullMessage()}");
         }
         catch (Exception ex)
         {
-            return new KeyOperationResult.Failure($"Unexpected error: {ex.GetFullMessage()}");
+            return KeyOperationResult.Failure($"Unexpected error: {ex.GetFullMessage()}");
         }
     }
 
@@ -148,20 +148,16 @@ internal class AndroidKeyStoreHelpers
     }
 
     internal static string MapKeyAlgorithm(KeyAlgorithm algorithm)
+    => algorithm switch
     {
-        return algorithm switch
-        {
-            KeyAlgorithm.Aes => KeyProperties.KeyAlgorithmAes,
-            KeyAlgorithm.Rsa => KeyProperties.KeyAlgorithmRsa,
-            KeyAlgorithm.Ec => KeyProperties.KeyAlgorithmEc,
-            _ => KeyProperties.KeyAlgorithmAes // Default to AES
-        };
-    }
+        KeyAlgorithm.Aes => KeyProperties.KeyAlgorithmAes,
+        KeyAlgorithm.Rsa => KeyProperties.KeyAlgorithmRsa,
+        KeyAlgorithm.Ec => KeyProperties.KeyAlgorithmEc,
+        _ => KeyProperties.KeyAlgorithmAes // Default to AES
+    };
 
     internal static string MapTransformation(string keyAlgorithm, string blockMode, string encryptionPadding)
-    {
-        return $"{keyAlgorithm}/{blockMode}/{encryptionPadding}";
-    }
+    => $"{keyAlgorithm}/{blockMode}/{encryptionPadding}";
 
     internal static KeyStorePurpose MapPurpose(CryptoOperation operation)
     {

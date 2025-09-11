@@ -73,5 +73,4 @@ public class KeyCreationHelpers
 
     private static bool IsEcKeySizeInvalid(CryptoKeyOptions options) =>
         options.Algorithm == KeyAlgorithm.Ec && options.KeySize < 256;
-
 }
