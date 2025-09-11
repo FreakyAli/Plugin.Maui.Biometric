@@ -17,11 +17,7 @@ internal class AndroidKeyStoreHelpers
             using var keyGen = KeyGenerator.GetInstance(keyAlgorithm, KeyStoreName);
             if (keyGen == null)
             {
-                return new KeyOperationResult
-                {
-                    Success = false,
-                    ErrorMessage = $"Failed to create key generator for algorithm {keyAlgorithm}."
-                };
+                return new KeyOperationResult.Failure($"Failed to create key generator for algorithm {keyAlgorithm}.");
             }
 
             var keyGenSpecBuilder = new KeyGenParameterSpec.Builder(keyId, purpose)
@@ -78,53 +74,28 @@ internal class AndroidKeyStoreHelpers
                 ? $"Key created with {securityLevelName} security (StrongBox {(securityLevelName == "StrongBox" ? "achieved" : "fell back")})"
                 : $"Key created with {securityLevelName} security";
 
-            return new KeyOperationResult
-            {
-                Success = true,
-                SecurityLevelName = securityLevelName, // Store string description
-                AdditionalInfo = securityMessage
-            };
+            return new KeyOperationResult.Success(securityLevelName, securityMessage);
         }
         catch (ProviderException ex) when (ex.Message?.Contains("StrongBox") == true)
         {
             if (preferStrongBox)
             {
                 // StrongBox failed, caller should retry without it
-                return new KeyOperationResult
-                {
-                    Success = false,
-                    ErrorMessage = $"StrongBox unavailable: {ex.Message}",
-                };
+                return new KeyOperationResult.Failure($"StrongBox unavailable: {ex.GetFullMessage()}");
             }
-            return new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Key creation failed: {ex.Message}"
-            };
+            return new KeyOperationResult.Failure($"Key creation failed: {ex.GetFullMessage()}");
         }
         catch (InvalidAlgorithmParameterException ex)
         {
-            return new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Invalid parameters for '{keyAlgorithm}': {ex.Message}"
-            };
+            return new KeyOperationResult.Failure($"Invalid parameters for '{keyAlgorithm}': {ex.GetFullMessage()}");
         }
         catch (KeyStoreException ex)
         {
-            return new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"KeyStore error while checking key '{keyId}': {ex.Message}"
-            };
+            return new KeyOperationResult.Failure($"KeyStore error while checking key '{keyId}': {ex.GetFullMessage()}");
         }
         catch (Exception ex)
         {
-            return new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Unexpected error: {ex.Message}"
-            };
+            return new KeyOperationResult.Failure($"Unexpected error: {ex.GetFullMessage()}");
         }
     }
 

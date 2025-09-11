@@ -3,6 +3,7 @@ namespace Plugin.Maui.Biometric;
 [Flags]
 public enum CryptoOperation
 {
+    None = 0,
     Encrypt = 1 << 0,
     Decrypt = 1 << 1,
     Sign = 1 << 2,

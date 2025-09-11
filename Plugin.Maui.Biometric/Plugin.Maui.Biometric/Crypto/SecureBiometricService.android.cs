@@ -7,50 +7,10 @@ internal partial class SecureBiometricService
 {
     public partial Task<KeyOperationResult> CreateKeyAsync(string keyId, CryptoKeyOptions options)
     {
-        if (string.IsNullOrWhiteSpace(keyId))
+        var validationResult = KeyCreationHelpers.PerformKeyCreationValidation(keyId, options);
+        if (!validationResult.WasSuccessful)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = "KeyId cannot be null or empty."
-            });
-        }
-
-        if (options is null)
-        {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = "Options cannot be null."
-            });
-        }
-
-        if (options.Operation == 0)
-        {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = "At least one operation must be specified."
-            });
-        }
-
-        // Validate algorithm/mode/padding combinations
-        if (options.BlockMode == BlockMode.Gcm && options.Padding != Padding.None)
-        {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = "GCM mode cannot be used with padding. Set Padding to None."
-            });
-        }
-
-        if (options.Algorithm == KeyAlgorithm.Ec && (options.Operation.HasFlag(CryptoOperation.Encrypt) || options.Operation.HasFlag(CryptoOperation.Decrypt)))
-        {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = "EC keys cannot be used for encrypt/decrypt operations. Use RSA or AES instead."
-            });
+            return Task.FromResult(validationResult);
         }
 
         try
@@ -58,22 +18,14 @@ internal partial class SecureBiometricService
             using var keyStore = KeyStore.GetInstance(AndroidKeyStoreHelpers.KeyStoreName);
             if (keyStore == null)
             {
-                return Task.FromResult(new KeyOperationResult
-                {
-                    Success = false,
-                    ErrorMessage = "Failed to access Android KeyStore."
-                });
+                return Task.FromResult(KeyOperationResult.Failure("Failed to access Android KeyStore."));
             }
 
             keyStore.Load(null);
 
             if (keyStore.ContainsAlias(keyId))
             {
-                return Task.FromResult(new KeyOperationResult
-                {
-                    Success = false,
-                    ErrorMessage = $"Key with alias '{keyId}' already exists."
-                });
+                return Task.FromResult(KeyOperationResult.Failure($"Key with alias '{keyId}' already exists."));
             }
 
             var keyAlgorithm = AndroidKeyStoreHelpers.MapKeyAlgorithm(options.Algorithm);
@@ -81,7 +33,7 @@ internal partial class SecureBiometricService
 
             // Try StrongBox first, then fall back
             var result = AndroidKeyStoreHelpers.TryCreateKeyWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: true);
-            if (result.Success)
+            if (result.WasSuccessful)
             {
                 return Task.FromResult(result);
             }
@@ -92,35 +44,23 @@ internal partial class SecureBiometricService
         }
         catch (KeyStoreException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"KeyStore error while checking key '{keyId}': {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"KeyStore error while checking key '{keyId}': {ex.GetFullMessage()}"));
         }
         catch (IOException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Storage I/O error: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Storage I/O error: {ex.GetFullMessage()}"));
         }
         catch (NoSuchAlgorithmException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Algorithm not supported: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Algorithm not supported: {ex.GetFullMessage()}"));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Unexpected error: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Unexpected error: {ex.GetFullMessage()}"));
         }
     }
 
@@ -128,11 +68,8 @@ internal partial class SecureBiometricService
     {
         if (string.IsNullOrWhiteSpace(keyId))
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = "KeyId cannot be null or empty."
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"KeyId cannot be null or empty."));
         }
 
         try
@@ -140,11 +77,8 @@ internal partial class SecureBiometricService
             using var keyStore = KeyStore.GetInstance(AndroidKeyStoreHelpers.KeyStoreName);
             if (keyStore == null)
             {
-                return Task.FromResult(new KeyOperationResult
-                {
-                    Success = false,
-                    ErrorMessage = "Failed to access Android KeyStore."
-                });
+                return Task.FromResult(KeyOperationResult.Failure
+                ($"Failed to access Android KeyStore."));
             }
 
             keyStore.Load(null);
@@ -152,52 +86,34 @@ internal partial class SecureBiometricService
             if (!keyStore.ContainsAlias(keyId))
             {
                 // Successful no-op - key already doesn't exist
-                return Task.FromResult(new KeyOperationResult
-                {
-                    Success = true,
-                    AdditionalInfo = $"Key '{keyId}' was already deleted or never existed."
-                });
+                return Task.FromResult(KeyOperationResult.Success
+                (additionalInfo: $"Key '{keyId}' was already deleted or never existed."));
             }
 
             keyStore.DeleteEntry(keyId);
 
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = true,
-                AdditionalInfo = $"Key '{keyId}' successfully deleted."
-            });
+            return Task.FromResult(KeyOperationResult.Success
+            (additionalInfo: $"Key '{keyId}' successfully deleted."));
         }
         catch (KeyStoreException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"KeyStore error while checking key '{keyId}': {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"KeyStore error while checking key '{keyId}': {ex.GetFullMessage()}"));
         }
         catch (IOException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Storage I/O error: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Storage I/O error: {ex.GetFullMessage()}"));
         }
         catch (NoSuchAlgorithmException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Algorithm not supported: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Algorithm not supported: {ex.GetFullMessage()}"));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Unexpected error: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Unexpected error: {ex.GetFullMessage()}"));
         }
     }
 
@@ -205,11 +121,8 @@ internal partial class SecureBiometricService
     {
         if (string.IsNullOrWhiteSpace(keyId))
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = "KeyId cannot be null or empty."
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"KeyId cannot be null or empty."));
         }
 
         try
@@ -217,53 +130,44 @@ internal partial class SecureBiometricService
             using var keyStore = KeyStore.GetInstance(AndroidKeyStoreHelpers.KeyStoreName);
             if (keyStore == null)
             {
-                return Task.FromResult(new KeyOperationResult
-                {
-                    Success = false,
-                    ErrorMessage = "Failed to access Android KeyStore."
-                });
+                return Task.FromResult(KeyOperationResult.Failure
+                ($"Failed to access Android KeyStore."));
             }
+
 
             keyStore.Load(null);
 
             var exists = keyStore.ContainsAlias(keyId);
-            return Task.FromResult(new KeyOperationResult
+            if (exists)
             {
-                Success = exists,
-                AdditionalInfo = exists ? $"Key '{keyId}' exists." : $"Key '{keyId}' does not exist."
-            });
+                return Task.FromResult(KeyOperationResult.Success
+                (additionalInfo: $"Key '{keyId}' exists."));
+            }
+            else
+            {
+                return Task.FromResult(KeyOperationResult.Failure
+                ($"Key '{keyId}' does not exist."));
+            }
         }
         catch (KeyStoreException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"KeyStore error while checking key '{keyId}': {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"KeyStore error while checking key '{keyId}': {ex.GetFullMessage()}"));
         }
         catch (Java.IO.IOException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Storage I/O error: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Storage I/O error: {ex.GetFullMessage()}"));
         }
         catch (NoSuchAlgorithmException ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Algorithm not supported: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Algorithm not supported: {ex.GetFullMessage()}"));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(new KeyOperationResult
-            {
-                Success = false,
-                ErrorMessage = $"Unexpected error: {ex.Message}"
-            });
+            return Task.FromResult(KeyOperationResult.Failure
+            ($"Unexpected error: {ex.GetFullMessage()}"));
         }
     }
 
