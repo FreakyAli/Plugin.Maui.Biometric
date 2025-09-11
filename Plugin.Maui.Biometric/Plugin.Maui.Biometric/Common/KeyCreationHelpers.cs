@@ -19,6 +19,11 @@ public class KeyCreationHelpers
             return KeyOperationResult.Failure("At least one operation must be specified.");
         }
 
+        return AlgorithSpecificValidation(keyId, options);
+    }
+
+    private static KeyOperationResult AlgorithSpecificValidation(string keyId, CryptoKeyOptions options)
+    {
         if (options.BlockMode == BlockMode.Gcm && options.Padding != Padding.None)
         {
             return KeyOperationResult.Failure("GCM mode cannot be used with padding. Set Padding to None.");
@@ -52,6 +57,11 @@ public class KeyCreationHelpers
         if (options.Algorithm == KeyAlgorithm.Rsa && options.KeySize < 2048)
         {
             return KeyOperationResult.Failure("RSA key size must be at least 2048 bits.");
+        }
+
+        if (options.Algorithm == KeyAlgorithm.Ec && options.KeySize < 256)
+        {
+            return KeyOperationResult.Failure("EC key size must be at least 256 bits.");
         }
 
         return KeyOperationResult.Success();
