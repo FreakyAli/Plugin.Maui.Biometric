@@ -9,7 +9,7 @@ public class KeyCreationHelpers
     }
 
     // Returns null if all validations pass, or a Failure result if any rule fails.
-    private static KeyOperationResult GetValidationFailure(string keyId, CryptoKeyOptions options)
+    private static KeyOperationResult? GetValidationFailure(string keyId, CryptoKeyOptions options)
     {
         if (IsKeyIdInvalid(keyId))
             return KeyOperationResult.Failure("KeyId cannot be null or empty.");
@@ -24,7 +24,7 @@ public class KeyCreationHelpers
         if (IsAesSignVerifyInvalid(options))
             return KeyOperationResult.Failure("AES keys cannot be used for sign/verify operations. Use RSA or EC instead.");
         if (IsAesBlockPaddingInvalid(options))
-            return KeyOperationResult.Failure("AES keys require a valid BlockMode and Padding.");
+            return KeyOperationResult.Failure("AES requires a BlockMode. For GCM set Padding to None; for CBC require a padding scheme (e.g., PKCS7).");
         if (IsRsaOaepBlockModeInvalid(options))
             return KeyOperationResult.Failure("RSA with OAEP padding cannot be used with a BlockMode. Set BlockMode to None.");
         if (IsKeySizeInvalid(options))
@@ -58,7 +58,10 @@ public class KeyCreationHelpers
 
     private static bool IsAesBlockPaddingInvalid(CryptoKeyOptions options) =>
         options.Algorithm == KeyAlgorithm.Aes &&
-        (options.BlockMode == BlockMode.None || options.Padding == Padding.None);
+        (
+            options.BlockMode == BlockMode.None ||
+            (options.BlockMode != BlockMode.Gcm && options.Padding == Padding.None)
+        );
 
     private static bool IsRsaOaepBlockModeInvalid(CryptoKeyOptions options) =>
         options.Algorithm == KeyAlgorithm.Rsa &&

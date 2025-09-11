@@ -134,7 +134,6 @@ internal partial class SecureBiometricService
                 ($"Failed to access Android KeyStore."));
             }
 
-
             keyStore.Load(null);
 
             var exists = keyStore.ContainsAlias(keyId);

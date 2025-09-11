@@ -19,9 +19,9 @@ internal class LAContextHelpers
                 return (BiometricHwStatus.NotEnrolled, authError?.GetErrorMessage());
             }
 
-            return (BiometricHwStatus.Unavailable, ownerError.GetErrorMessage());
+            return (BiometricHwStatus.Unavailable, authError?.GetErrorMessage());
         }
 
-        return (BiometricHwStatus.Failure, "Biometric authentication failed.");
+        return (BiometricHwStatus.Failure, "Biometric authentication failed, " + ownerError?.GetErrorMessage());
     }
 }
