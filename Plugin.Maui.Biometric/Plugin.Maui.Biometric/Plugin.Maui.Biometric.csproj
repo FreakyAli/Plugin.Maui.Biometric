@@ -17,13 +17,13 @@
 		<Authors>FreakyAli</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Description>A Biometric plug-in for .NET MAUI</Description>
-		<PackageIcon>auth_icon.jpg</PackageIcon>
+		<PackageIcon>icon.png</PackageIcon>
 		<RepositoryUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</PackageProjectUrl>
 		<PackageTags>Biometric FaceID Fingerprint .NET MAUI</PackageTags>
 		<PackageReleaseNotes>Biometric authentication with .NET MAUI</PackageReleaseNotes>
 		<PackageReadmeFile>Readme.md</PackageReadmeFile>
-		<Copyright>Copyright 2024</Copyright>
+		<Copyright>Copyright 2025</Copyright>
 		<PackOnBuild>true</PackOnBuild>
 		<SynchReleaseVersion>false</SynchReleaseVersion>
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
@@ -45,7 +45,7 @@
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<ItemGroup>
-		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
+		<None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 
@@ -75,6 +75,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
+		<PackageReference Include="FreakyKit.Utils" Version="1.0.1" />		
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
 		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.28" />
