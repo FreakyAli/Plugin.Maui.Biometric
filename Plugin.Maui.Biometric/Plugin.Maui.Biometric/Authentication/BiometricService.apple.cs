@@ -6,24 +6,9 @@ namespace Plugin.Maui.Biometric;
 internal partial class BiometricService
 {
     public partial Task<BiometricHwStatus> GetAuthenticationStatusAsync(AuthenticatorStrength authStrength)
-    {
-        var localAuthContext = new LAContext();
-        if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthentication, out var _))
-        {
-            if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out var _))
-            {
-                if (localAuthContext.BiometryType != LABiometryType.None)
-                {
-                    return Task.FromResult(BiometricHwStatus.Success);
-                }
-
-                return Task.FromResult(BiometricHwStatus.NotEnrolled);
-            }
-
-            return Task.FromResult(BiometricHwStatus.Unavailable);
-        }
-
-        return Task.FromResult(BiometricHwStatus.Failure);
+    { 
+        var (status, _) = LAContextHelpers.GetBiometricHwStatus();
+        return Task.FromResult(status);
     }
 
     public async partial Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
@@ -73,7 +58,7 @@ internal partial class BiometricService
 
     public partial Task<BiometricType[]> GetEnrolledBiometricTypesAsync()
     {
-        var localAuthContext = new LAContext();
+        using var localAuthContext = new LAContext();
         var biometricTypes = new List<BiometricType>();
 
         if (localAuthContext.CanEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, out _))
