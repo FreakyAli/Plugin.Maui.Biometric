@@ -4,6 +4,7 @@ using AndroidX.Core.Content;
 using AndroidX.Biometric;
 using Activity = AndroidX.AppCompat.App.AppCompatActivity;
 using Android.Content.PM;
+using Java.Util.Concurrent;
 
 namespace Plugin.Maui.Biometric;
 
@@ -29,9 +30,9 @@ internal partial class BiometricService
         {
             var packageManager = activity.PackageManager;
 
-            bool hasFingerprint = packageManager.HasSystemFeature(PackageManager.FeatureFingerprint);
-            bool hasFace = OperatingSystem.IsAndroidVersionAtLeast(29) &&
-                        packageManager.HasSystemFeature(PackageManager.FeatureFace);
+            var hasFingerprint = packageManager?.HasSystemFeature(PackageManager.FeatureFingerprint) == true;
+            var hasFace = OperatingSystem.IsAndroidVersionAtLeast(29) &&
+                        packageManager?.HasSystemFeature(PackageManager.FeatureFace) == true;
 
             // If biometric hardware exists but CanAuthenticate failed to recognize enrollment, treat as partial success
             if (hasFingerprint || hasFace)
@@ -64,7 +65,17 @@ internal partial class BiometricService
                 return new AuthenticationResponse
                 {
                     Status = BiometricResponseStatus.Failure,
-                    ErrorMsg = "Your Platform.CurrentActivity either returned null or is not of type `AndroidX.AppCompat.App.AppCompatActivity`, ensure your Activity is of the right type and that its not null when you call this method"
+                    ErrorMsg = BiometricPromptHelpers.ActivityErrorMsg
+                };
+            }
+            var activityExecutor = ContextCompat.GetMainExecutor(activity);
+            if (activityExecutor is not IExecutor executor)
+            {
+                // Executor creation fails
+                return new AuthenticationResponse
+                {
+                    Status = BiometricResponseStatus.Failure,
+                    ErrorMsg = BiometricPromptHelpers.ExecutorErrorMsg
                 };
             }
 
@@ -88,7 +99,6 @@ internal partial class BiometricService
             }
 
             var promptInfo = allInfo.Build();
-            var executor = ContextCompat.GetMainExecutor(activity);
             var authCallback = new AuthCallback()
             {
                 Response = new TaskCompletionSource<AuthenticationResponse>()
@@ -99,7 +109,7 @@ internal partial class BiometricService
             using (token.Register(() => biometricPrompt.CancelAuthentication()))
             {
                 biometricPrompt.Authenticate(promptInfo);
-                var response = await authCallback.Response.Task;
+                var response = await authCallback.Response.Task.ConfigureAwait(false);
                 return response;
             }
         }
@@ -128,9 +138,9 @@ internal partial class BiometricService
 
                 // Face detection supported from Android 10 (API 29) onwards
                 bool isFaceSupported = OperatingSystem.IsAndroidVersionAtLeast(29) &&
-                                    packageManager.HasSystemFeature(PackageManager.FeatureFace);
+                                    packageManager?.HasSystemFeature(PackageManager.FeatureFace) == true;
 
-                bool isFingerprintSupported = packageManager.HasSystemFeature(PackageManager.FeatureFingerprint);
+                bool isFingerprintSupported = packageManager?.HasSystemFeature(PackageManager.FeatureFingerprint) == true;
 
                 if (isFaceSupported)
                 {
