@@ -157,53 +157,69 @@ internal static class LAContextCryptoHelpers
 
         var algorithm = AppleKeychainHelpers.MapEncryptAlgorithm(request.Padding);
 
+        return encrypt
+            ? EncryptRsa(request, algorithm)
+            : await DecryptRsaAsync(request, algorithm, token);
+    }
+
+    /// <summary>
+    /// Encrypts <paramref name="request"/> data with the RSA public key.
+    /// No biometric authentication is required.
+    /// </summary>
+    private static SecureAuthenticationResponse EncryptRsa(
+        SecureAuthenticationRequest request, SecKeyAlgorithm algorithm)
+    {
         try
         {
-            if (encrypt)
-            {
-                // Public key encryption — no biometric required.
-                var (publicKey, pubError) = AppleKeychainHelpers.RetrieveAsymmetricPublicKey(request.KeyId);
-                if (publicKey is null)
-                    return SecureAuthenticationResponse.Failure(pubError!);
+            var (publicKey, pubError) = AppleKeychainHelpers.RetrieveAsymmetricPublicKey(request.KeyId);
+            if (publicKey is null)
+                return SecureAuthenticationResponse.Failure(pubError!);
 
-                var ciphertext = publicKey.CreateEncryptedData(
-                    algorithm, NSData.FromArray(request.InputData), out NSError? encError);
+            var ciphertext = publicKey.CreateEncryptedData(
+                algorithm, NSData.FromArray(request.InputData), out NSError? encError);
 
-                return ciphertext is null
-                    ? SecureAuthenticationResponse.Failure($"RSA encrypt failed: {encError?.GetErrorMessage()}")
-                    : SecureAuthenticationResponse.Success(ciphertext.ToArray());
-            }
-            else
-            {
-                // Private key decryption — biometric required.
-                var (context, authError) = await AuthenticateAsync(
-                    request.Title, request.AllowPasswordAuth, token);
-                if (context is null)
-                    return SecureAuthenticationResponse.Failure(authError!);
-
-                try
-                {
-                    var (privateKey, privError) = AppleKeychainHelpers.RetrieveAsymmetricPrivateKey(request.KeyId, context);
-                    if (privateKey is null)
-                        return SecureAuthenticationResponse.Failure(privError!);
-
-                    var plaintext = privateKey.CreateDecryptedData(
-                        algorithm, NSData.FromArray(request.InputData), out NSError? decError);
-
-                    return plaintext is null
-                        ? SecureAuthenticationResponse.Failure($"RSA decrypt failed: {decError?.GetErrorMessage()}")
-                        : SecureAuthenticationResponse.Success(plaintext.ToArray());
-                }
-                finally
-                {
-                    context.Dispose();
-                }
-            }
+            return ciphertext is null
+                ? SecureAuthenticationResponse.Failure($"RSA encrypt failed: {encError?.GetErrorMessage()}")
+                : SecureAuthenticationResponse.Success(ciphertext.ToArray());
         }
         catch (Exception ex)
         {
-            return SecureAuthenticationResponse.Failure(
-                $"RSA {(encrypt ? "encrypt" : "decrypt")} failed: {ex.GetFullMessage()}");
+            return SecureAuthenticationResponse.Failure($"RSA encrypt failed: {ex.GetFullMessage()}");
+        }
+    }
+
+    /// <summary>
+    /// Decrypts <paramref name="request"/> data with the biometric-protected RSA private key.
+    /// Biometric authentication is required.
+    /// </summary>
+    private static async Task<SecureAuthenticationResponse> DecryptRsaAsync(
+        SecureAuthenticationRequest request, SecKeyAlgorithm algorithm, CancellationToken token)
+    {
+        var (context, authError) = await AuthenticateAsync(
+            request.Title, request.AllowPasswordAuth, token);
+        if (context is null)
+            return SecureAuthenticationResponse.Failure(authError!);
+
+        try
+        {
+            var (privateKey, privError) = AppleKeychainHelpers.RetrieveAsymmetricPrivateKey(request.KeyId, context);
+            if (privateKey is null)
+                return SecureAuthenticationResponse.Failure(privError!);
+
+            var plaintext = privateKey.CreateDecryptedData(
+                algorithm, NSData.FromArray(request.InputData), out NSError? decError);
+
+            return plaintext is null
+                ? SecureAuthenticationResponse.Failure($"RSA decrypt failed: {decError?.GetErrorMessage()}")
+                : SecureAuthenticationResponse.Success(plaintext.ToArray());
+        }
+        catch (Exception ex)
+        {
+            return SecureAuthenticationResponse.Failure($"RSA decrypt failed: {ex.GetFullMessage()}");
+        }
+        finally
+        {
+            context.Dispose();
         }
     }
 
