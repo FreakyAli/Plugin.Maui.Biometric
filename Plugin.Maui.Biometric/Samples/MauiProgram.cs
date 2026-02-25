@@ -16,6 +16,7 @@ namespace Samples
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
             builder.Services.AddSingleton((e) => BiometricAuthenticationService.Default);
+            builder.Services.AddSingleton((e) => SecureBiometricAuthenticationService.Default);
             return builder.Build();
         }
     }

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Samples.SecureBiometricPage"
+             Title="Secure Biometric Service">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30"
+            Spacing="15">
+
+            <Label
+                Text="ISecureBiometric"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Label
+                Text="Hardware-backed key operations with biometric authentication"
+                Style="{StaticResource SubHeadline}"
+                SemanticProperties.HeadingLevel="Level2" />
+
+            <Button
+                Text="Create Key"
+                SemanticProperties.Hint="Create a hardware-backed AES-256 key"
+                Clicked="OnCreateKeyClicked"
+                HorizontalOptions="Fill" />
+
+            <Button
+                Text="Encrypt"
+                SemanticProperties.Hint="Encrypt sample data using the hardware key"
+                Clicked="OnEncryptClicked"
+                HorizontalOptions="Fill" />
+
+            <Button
+                Text="Decrypt"
+                SemanticProperties.Hint="Decrypt previously encrypted data"
+                Clicked="OnDecryptClicked"
+                HorizontalOptions="Fill" />
+
+            <Button
+                Text="Delete Key"
+                SemanticProperties.Hint="Delete the hardware key from the keystore"
+                Clicked="OnDeleteKeyClicked"
+                HorizontalOptions="Fill" />
+
+            <Label
+                x:Name="ResultLabel"
+                Text=""
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
