@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net9.0;net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net10.0;net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<SingleProject>true</SingleProject>
@@ -17,13 +17,13 @@
 		<Authors>FreakyAli</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Description>A Biometric plug-in for .NET MAUI</Description>
-		<PackageIcon>auth_icon.jpg</PackageIcon>
+		<PackageIcon>icon.png</PackageIcon>
 		<RepositoryUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/FreakyAli/Plugin.Maui.Biometric</PackageProjectUrl>
 		<PackageTags>Biometric FaceID Fingerprint .NET MAUI</PackageTags>
 		<PackageReleaseNotes>Biometric authentication with .NET MAUI</PackageReleaseNotes>
 		<PackageReadmeFile>Readme.md</PackageReadmeFile>
-		<Copyright>Copyright 2024</Copyright>
+		<Copyright>Copyright 2025</Copyright>
 		<PackOnBuild>true</PackOnBuild>
 		<SynchReleaseVersion>false</SynchReleaseVersion>
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
@@ -35,22 +35,22 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<Configurations>Release;Debug</Configurations>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-ios|AnyCPU'">
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-ios|AnyCPU'">
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<ItemGroup>
-		<None Include="auth_icon.jpg" Pack="true" Visible="false" PackagePath="" />
+		<None Include="icon.png" Pack="true" Visible="false" PackagePath="" />
 		<None Include="Readme.md" Pack="true" Visible="false" PackagePath="" />
 	</ItemGroup>
 
 	<!-- Android -->
-	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0-android')) != true">
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net10.0-android')) != true">
 		<Compile Remove="**\*.android.cs" />
 		<None Include="**\*.android.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 		<Compile Remove="**\Android\**\*.cs" />
@@ -58,7 +58,7 @@
 	</ItemGroup>
 
 	<!-- Both iOS and Mac Catalyst -->
-	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0-ios')) != true AND $(TargetFramework.StartsWith('net9.0-maccatalyst')) != true">
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net10.0-ios')) != true AND $(TargetFramework.StartsWith('net10.0-maccatalyst')) != true">
 		<Compile Remove="**\*.apple.cs" />
 		<None Include="**\*.apple.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 		<Compile Remove="**\Apple\**\*.cs" />
@@ -74,17 +74,17 @@
 	</ItemGroup>
 
 	<!-- .NET -->
-	<ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">
+	<ItemGroup Condition="'$(TargetFramework)' != 'net10.0'">
 		<Compile Remove="**\*.net.cs" />
 		<None Include="**\*.net.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
 	</ItemGroup>
 	
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.0" />
+		<PackageReference Include="FreakyKit.Utils" Version="1.0.1" />		
 	</ItemGroup>
-	
-	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
-		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.28" />
-		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.1" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+		<PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.30" />
+		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.3" />
 	</ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 # Plugin.Maui.Biometric
 
-A biometric plugin for .NET MAUI, for Android and iOS 
+A biometric plugin for .NET MAUI
 
 <div>
    <a href="https://www.nuget.org/packages/Plugin.Maui.Biometric"><img src="https://img.shields.io/nuget/v/Plugin.Maui.Biometric?color=blue&logo=nuget"></a>
