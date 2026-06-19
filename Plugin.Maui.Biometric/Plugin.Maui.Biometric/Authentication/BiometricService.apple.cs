@@ -55,7 +55,6 @@ internal partial class BiometricService
         return response;
     }
 
-
     public partial Task<BiometricType[]> GetEnrolledBiometricTypesAsync()
     {
         using var localAuthContext = new LAContext();

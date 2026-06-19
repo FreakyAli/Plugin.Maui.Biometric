@@ -96,7 +96,6 @@ internal static class BiometricPromptHelpers
         return builder.Build();
     }
 
-
     internal static async Task<SecureAuthenticationResponse> ProcessCryptoAsync(
     SecureAuthenticationRequest request, CipherMode mode,
     CancellationToken token)
