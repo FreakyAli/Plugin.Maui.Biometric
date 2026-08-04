@@ -34,7 +34,6 @@ public class CryptoKeyOptionsTests
     [InlineData(BlockMode.Cbc)]
     [InlineData(BlockMode.Gcm)]
     [InlineData(BlockMode.Ctr)]
-    [InlineData(BlockMode.Ecb)]
     public void BlockMode_AcceptsAllValues(BlockMode blockMode)
     {
         var options = new CryptoKeyOptions { BlockMode = blockMode };

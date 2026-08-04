@@ -1,6 +1,6 @@
 ﻿namespace Plugin.Maui.Biometric;
 
-public sealed class AuthenticationResponse
+public class AuthenticationResponse
 {
     public BiometricResponseStatus Status { get; set; }
     public AuthenticationType AuthenticationType { get; set; }

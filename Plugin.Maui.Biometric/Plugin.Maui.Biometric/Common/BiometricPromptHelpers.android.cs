@@ -5,6 +5,7 @@ using BiometricManager = AndroidX.Biometric.BiometricManager;
 using Java.Util.Concurrent;
 using AndroidX.Core.Content;
 using Javax.Crypto;
+using Javax.Crypto.Spec;
 using Java.Security;
 
 namespace Plugin.Maui.Biometric;
@@ -52,11 +53,21 @@ internal static class BiometricPromptHelpers
             ?? throw new InvalidOperationException($"Key '{keyId}' could not be retrieved from KeyStore.");
     }
 
-    private static Cipher InitCipher(string transformation, CipherMode mode, IKey key)
+    private static Cipher InitCipher(string transformation, CipherMode mode, IKey key, byte[]? iv = null)
     {
         var cipher = Cipher.GetInstance(transformation)
             ?? throw new InvalidOperationException("Failed to create cipher.");
-        cipher.Init(mode, key);
+
+        if (mode == CipherMode.DecryptMode && iv != null)
+        {
+            var spec = new IvParameterSpec(iv);
+            cipher.Init(mode, key, spec);
+        }
+        else
+        {
+            cipher.Init(mode, key);
+        }
+
         return cipher;
     }
 
@@ -107,7 +118,8 @@ internal static class BiometricPromptHelpers
         try
         {
             using var key = GetKeyFromStore(request.KeyId);
-            using var cipher = InitCipher(request.Transformation, mode, key);
+            using var cipher = InitCipher(request.Transformation, mode, key,
+                mode == CipherMode.DecryptMode ? request.IV : null);
 
             var (activity, executor) = GetActivityAndExecutor();
             var promptInfo = BuildPromptInfo(request);

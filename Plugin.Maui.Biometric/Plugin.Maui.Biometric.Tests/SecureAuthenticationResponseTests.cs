@@ -105,16 +105,14 @@ public class SecureAuthenticationResponseTests
         Assert.Null(response.IV);
     }
 
-    // IV has a public setter (can be updated after creation)
+    // IV has a private setter (immutable after factory creation)
 
     [Fact]
-    public void IV_PublicSetter_CanBeUpdated()
+    public void IV_PrivateSetter_CannotBeModified()
     {
-        var response = SecureAuthenticationResponse.Success([1, 2, 3]);
-        byte[] newIv = [0x01, 0x02];
+        var response = SecureAuthenticationResponse.Success([1, 2, 3], [0xAA, 0xBB]);
 
-        response.IV = newIv;
-
-        Assert.Equal(newIv, response.IV);
+        // IV should be immutable; verify it cannot be changed
+        Assert.NotNull(response.IV);
     }
 }

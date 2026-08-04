@@ -42,19 +42,19 @@ public interface ISecureBiometric
     /// </summary>
     Task<SecureAuthenticationResponse> DecryptAsync(SecureAuthenticationRequest request, CancellationToken token);
 
-    // /// <summary>
-    // /// Sign input data using a hardware-backed key.
-    // /// Android: Signature.getInstance("SHA256withRSA") with KeyStore key
-    // /// iOS/macOS: SecKeyCreateSignature
-    // /// Windows: CryptographicEngine.SignAsync
-    // /// </summary>
-    // Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token);
+    /// <summary>
+    /// Sign input data using a hardware-backed key.
+    /// Android: Not yet implemented.
+    /// iOS/macOS: SecKeyCreateSignature
+    /// Windows: CryptographicEngine.SignAsync
+    /// </summary>
+    Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token);
 
-    // /// <summary>
-    // /// Verify signature against input data using a hardware-backed key.
-    // /// Android: Signature.verify
-    // /// iOS/macOS: SecKeyVerifySignature
-    // /// Windows: CryptographicEngine.VerifySignatureAsync
-    // /// </summary>
-    // Task<SecureAuthenticationResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token);
+    /// <summary>
+    /// Verify signature against input data using a hardware-backed key.
+    /// Android: Not yet implemented.
+    /// iOS/macOS: SecKeyVerifySignature
+    /// Windows: CryptographicEngine.VerifySignatureAsync
+    /// </summary>
+    Task<SecureAuthenticationResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token);
 }

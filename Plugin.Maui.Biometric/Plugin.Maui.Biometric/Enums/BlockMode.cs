@@ -5,6 +5,5 @@ public enum BlockMode
     None,
     Cbc,
     Gcm,
-    Ctr,
-    Ecb
+    Ctr
 }

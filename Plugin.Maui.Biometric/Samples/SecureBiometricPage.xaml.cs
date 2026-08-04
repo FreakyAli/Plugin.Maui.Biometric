@@ -112,8 +112,11 @@ namespace Samples
         {
             var result = await _secureBiometric.DeleteKeyAsync(KeyId);
 
-            _encryptedData = null;
-            _iv = null;
+            if (result.WasSuccessful)
+            {
+                _encryptedData = null;
+                _iv = null;
+            }
 
             ResultLabel.Text = result.WasSuccessful
                 ? "Key deleted"

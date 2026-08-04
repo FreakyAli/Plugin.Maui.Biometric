@@ -184,7 +184,6 @@ internal class AndroidKeyStoreHelpers
             BlockMode.Cbc => KeyProperties.BlockModeCbc,
             BlockMode.Gcm => KeyProperties.BlockModeGcm,
             BlockMode.Ctr => KeyProperties.BlockModeCtr,
-            BlockMode.Ecb => KeyProperties.BlockModeEcb,
             _ => KeyProperties.BlockModeGcm // Default
         };
 

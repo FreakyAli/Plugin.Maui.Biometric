@@ -23,10 +23,14 @@ public class KeyCreationHelpers
             return KeyOperationResult.Failure("EC keys cannot be used for encrypt/decrypt operations. Use RSA or AES instead.");
         if (IsAesSignVerifyInvalid(options))
             return KeyOperationResult.Failure("AES keys cannot be used for sign/verify operations. Use RSA or EC instead.");
+        if (IsAesIncompatiblePaddingInvalid(options))
+            return KeyOperationResult.Failure("AES does not support OAEP or PKCS1 padding.");
         if (IsAesBlockPaddingInvalid(options))
-            return KeyOperationResult.Failure("AES requires a BlockMode. For GCM set Padding to None; for CBC require a padding scheme (e.g., PKCS7).");
+            return KeyOperationResult.Failure("AES with CBC mode requires a padding scheme (e.g., PKCS7); CTR and ECB support NoPadding.");
         if (IsRsaOaepBlockModeInvalid(options))
             return KeyOperationResult.Failure("RSA with OAEP padding cannot be used with a BlockMode. Set BlockMode to None.");
+        if (IsRsaIncompatiblePaddingInvalid(options))
+            return KeyOperationResult.Failure("RSA does not support PKCS7 padding.");
         if (IsKeySizeInvalid(options))
             return KeyOperationResult.Failure("Key size must be between 128 and 8192 bits.");
         if (IsRsaKeySizeInvalid(options))
@@ -56,17 +60,25 @@ public class KeyCreationHelpers
         options.Algorithm == KeyAlgorithm.Aes &&
         (options.Operation.HasFlag(CryptoOperation.Sign) || options.Operation.HasFlag(CryptoOperation.Verify));
 
+    private static bool IsAesIncompatiblePaddingInvalid(CryptoKeyOptions options) =>
+        options.Algorithm == KeyAlgorithm.Aes &&
+        (options.Padding == Padding.Oaep || options.Padding == Padding.Pkcs1);
+
     private static bool IsAesBlockPaddingInvalid(CryptoKeyOptions options) =>
         options.Algorithm == KeyAlgorithm.Aes &&
         (
             options.BlockMode == BlockMode.None ||
-            (options.BlockMode != BlockMode.Gcm && options.Padding == Padding.None)
+            (options.BlockMode == BlockMode.Cbc && options.Padding == Padding.None)
         );
 
     private static bool IsRsaOaepBlockModeInvalid(CryptoKeyOptions options) =>
         options.Algorithm == KeyAlgorithm.Rsa &&
         options.Padding == Padding.Oaep &&
         options.BlockMode != BlockMode.None;
+
+    private static bool IsRsaIncompatiblePaddingInvalid(CryptoKeyOptions options) =>
+        options.Algorithm == KeyAlgorithm.Rsa &&
+        options.Padding == Padding.Pkcs7;
 
     private static bool IsKeySizeInvalid(CryptoKeyOptions options) =>
         options.KeySize < 128 || options.KeySize > 8192;

@@ -30,9 +30,10 @@ internal static class WindowsHelloCryptoHelpers
     /// <summary>
     /// Requests Windows Hello / biometric verification.
     /// Mirrors <c>AuthenticateAsync</c> in <c>LAContextCryptoHelpers</c>.
+    /// Note: Windows Hello APIs do not support cancellation.
     /// </summary>
     private static async Task<(bool verified, string? error)> AuthenticateAsync(
-        string message, CancellationToken token)
+        string message)
     {
         var availability = await UserConsentVerifier.CheckAvailabilityAsync();
         if (availability != UserConsentVerifierAvailability.Available)
@@ -40,13 +41,10 @@ internal static class WindowsHelloCryptoHelpers
 
         try
         {
-            using (token.Register(() => { }))
-            {
-                var result = await UserConsentVerifier.RequestVerificationAsync(message);
-                return result == UserConsentVerificationResult.Verified
-                    ? (true, null)
-                    : (false, $"Authentication failed: {result}");
-            }
+            var result = await UserConsentVerifier.RequestVerificationAsync(message);
+            return result == UserConsentVerificationResult.Verified
+                ? (true, null)
+                : (false, $"Authentication failed: {result}");
         }
         catch (OperationCanceledException)
         {
@@ -74,7 +72,7 @@ internal static class WindowsHelloCryptoHelpers
         var validation = ValidateRequest(request);
         if (validation is not null) return validation;
 
-        var (verified, authError) = await AuthenticateAsync(request.Title, token);
+        var (verified, authError) = await AuthenticateAsync(request.Title);
         if (!verified)
             return SecureAuthenticationResponse.Failure(authError!);
 
@@ -84,39 +82,46 @@ internal static class WindowsHelloCryptoHelpers
             if (keyBytes is null)
                 return SecureAuthenticationResponse.Failure(keyError!);
 
-            if (encrypt)
+            try
             {
-                var iv         = RandomNumberGenerator.GetBytes(12);  // 96-bit nonce
-                var ciphertext = new byte[request.InputData.Length];
-                var tag        = new byte[16];                         // 128-bit auth tag
+                if (encrypt)
+                {
+                    var iv         = RandomNumberGenerator.GetBytes(12);  // 96-bit nonce
+                    var ciphertext = new byte[request.InputData.Length];
+                    var tag        = new byte[16];                         // 128-bit auth tag
 
-                using var aesGcm = new AesGcm(keyBytes, 16);
-                aesGcm.Encrypt(iv, request.InputData, ciphertext, tag);
+                    using var aesGcm = new AesGcm(keyBytes, 16);
+                    aesGcm.Encrypt(iv, request.InputData, ciphertext, tag);
 
-                // Append tag to ciphertext — matches Android/Apple GCM output layout.
-                var outputData = new byte[ciphertext.Length + tag.Length];
-                ciphertext.CopyTo(outputData, 0);
-                tag.CopyTo(outputData, ciphertext.Length);
+                    // Append tag to ciphertext — matches Android/Apple GCM output layout.
+                    var outputData = new byte[ciphertext.Length + tag.Length];
+                    ciphertext.CopyTo(outputData, 0);
+                    tag.CopyTo(outputData, ciphertext.Length);
 
-                return SecureAuthenticationResponse.Success(outputData, iv);
+                    return SecureAuthenticationResponse.Success(outputData, iv);
+                }
+                else
+                {
+                    if (request.IV is null || request.IV.Length == 0)
+                        return SecureAuthenticationResponse.Failure("IV is required for AES-GCM decryption.");
+
+                    if (request.InputData.Length < 16)
+                        return SecureAuthenticationResponse.Failure("Input data is too short for AES-GCM decryption.");
+
+                    // Split ciphertext and 16-byte tag
+                    var ciphertext = request.InputData[..^16];
+                    var tag        = request.InputData[^16..];
+                    var plaintext  = new byte[ciphertext.Length];
+
+                    using var aesGcm = new AesGcm(keyBytes, 16);
+                    aesGcm.Decrypt(request.IV, ciphertext, tag, plaintext);
+
+                    return SecureAuthenticationResponse.Success(plaintext);
+                }
             }
-            else
+            finally
             {
-                if (request.IV is null || request.IV.Length == 0)
-                    return SecureAuthenticationResponse.Failure("IV is required for AES-GCM decryption.");
-
-                if (request.InputData.Length < 16)
-                    return SecureAuthenticationResponse.Failure("Input data is too short for AES-GCM decryption.");
-
-                // Split ciphertext and 16-byte tag
-                var ciphertext = request.InputData[..^16];
-                var tag        = request.InputData[^16..];
-                var plaintext  = new byte[ciphertext.Length];
-
-                using var aesGcm = new AesGcm(keyBytes, 16);
-                aesGcm.Decrypt(request.IV, ciphertext, tag, plaintext);
-
-                return SecureAuthenticationResponse.Success(plaintext);
+                Array.Clear(keyBytes, 0, keyBytes.Length);
             }
         }
         catch (Exception ex)

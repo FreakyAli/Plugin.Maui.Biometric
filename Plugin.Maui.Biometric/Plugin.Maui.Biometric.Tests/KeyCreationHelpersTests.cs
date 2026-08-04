@@ -181,9 +181,7 @@ public class KeyCreationHelpersTests
 
     [Theory]
     [InlineData(BlockMode.Cbc)]
-    [InlineData(BlockMode.Ctr)]
-    [InlineData(BlockMode.Ecb)]
-    public void AesWithNonGcmBlockModeAndNoPadding_ReturnsFailure(BlockMode blockMode)
+    public void AesWithCbcAndNoPadding_ReturnsFailure(BlockMode blockMode)
     {
         var options = ValidAes();
         options.BlockMode = blockMode;
@@ -213,7 +211,6 @@ public class KeyCreationHelpersTests
     [Theory]
     [InlineData(BlockMode.Cbc)]
     [InlineData(BlockMode.Ctr)]
-    [InlineData(BlockMode.Ecb)]
     public void RsaWithOaepAndNonNoneBlockMode_ReturnsFailure(BlockMode blockMode)
     {
         var options = ValidRsa();

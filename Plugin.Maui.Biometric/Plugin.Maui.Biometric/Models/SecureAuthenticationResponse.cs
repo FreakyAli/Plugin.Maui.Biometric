@@ -4,7 +4,7 @@ public sealed class SecureAuthenticationResponse
 {
     public bool WasSuccessful { get; private set; }
     public byte[]? OutputData { get; private set; }
-    public byte[]? IV { get; set; }
+    public byte[]? IV { get; private set; }
     public string? ErrorMessage { get; private set; }
 
     public static SecureAuthenticationResponse Success(byte[] outputData, byte[]? iv = null)

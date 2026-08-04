@@ -1,15 +1,11 @@
-
 namespace Plugin.Maui.Biometric;
 
 public abstract class BaseAuthenticationRequest
 {
     public bool AllowPasswordAuth { get; set; }
-
-#nullable disable
-    public string Title { get; set; }
-    public string Subtitle { get; set; }
-    public string NegativeText { get; set; }
-#nullable restore
+    public string Title { get; set; } = string.Empty;
+    public string Subtitle { get; set; } = string.Empty;
+    public string NegativeText { get; set; } = string.Empty;
 
     /// <summary>
     /// On Windows Platform with Windows Hello, this property is used as a message for auth

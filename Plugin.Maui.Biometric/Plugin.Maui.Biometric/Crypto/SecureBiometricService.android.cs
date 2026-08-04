@@ -184,7 +184,7 @@ internal partial class SecureBiometricService
         if (inputData is null || inputData.Length == 0)
             return Task.FromResult(SecureAuthenticationResponse.Failure("Input data cannot be null or empty."));
 
-        return Task.FromResult(SecureAuthenticationResponse.Failure("Key not found or operation canceled."));
+        return Task.FromResult(SecureAuthenticationResponse.Failure("Signing is not yet supported on Android."));
     }
 
     public partial Task<SecureAuthenticationResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token)
@@ -198,6 +198,6 @@ internal partial class SecureBiometricService
         if (signature is null || signature.Length == 0)
             return Task.FromResult(SecureAuthenticationResponse.Failure("Signature cannot be null or empty."));
 
-        return Task.FromResult(SecureAuthenticationResponse.Failure("Key not found or operation canceled."));
+        return Task.FromResult(SecureAuthenticationResponse.Failure("Verification is not yet supported on Android."));
     }
 }

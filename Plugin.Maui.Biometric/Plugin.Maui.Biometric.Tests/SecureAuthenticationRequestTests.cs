@@ -64,7 +64,6 @@ public class SecureAuthenticationRequestTests
     [InlineData(BlockMode.Cbc)]
     [InlineData(BlockMode.Gcm)]
     [InlineData(BlockMode.Ctr)]
-    [InlineData(BlockMode.Ecb)]
     public void BlockMode_AcceptsAllValues(BlockMode blockMode)
     {
         var request = BuildRequest();

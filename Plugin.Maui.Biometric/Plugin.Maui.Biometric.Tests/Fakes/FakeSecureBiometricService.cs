@@ -7,6 +7,8 @@ internal class FakeSecureBiometricService : ISecureBiometric
     public KeyOperationResult KeyExistsResult    { get; set; } = KeyOperationResult.Success();
     public SecureAuthenticationResponse EncryptResult { get; set; } = SecureAuthenticationResponse.Success(Array.Empty<byte>());
     public SecureAuthenticationResponse DecryptResult { get; set; } = SecureAuthenticationResponse.Success(Array.Empty<byte>());
+    public SecureAuthenticationResponse SignResult { get; set; } = SecureAuthenticationResponse.Success(Array.Empty<byte>());
+    public SecureAuthenticationResponse VerifyResult { get; set; } = SecureAuthenticationResponse.Success(Array.Empty<byte>());
 
     public Task<KeyOperationResult> CreateKeyAsync(string keyId, CryptoKeyOptions options)
         => Task.FromResult(CreateKeyResult);
@@ -27,5 +29,17 @@ internal class FakeSecureBiometricService : ISecureBiometric
     {
         token.ThrowIfCancellationRequested();
         return Task.FromResult(DecryptResult);
+    }
+
+    public Task<SecureAuthenticationResponse> SignAsync(string keyId, byte[] inputData, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        return Task.FromResult(SignResult);
+    }
+
+    public Task<SecureAuthenticationResponse> VerifyAsync(string keyId, byte[] inputData, byte[] signature, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        return Task.FromResult(VerifyResult);
     }
 }
