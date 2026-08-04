@@ -2,7 +2,7 @@ using LocalAuthentication;
 
 namespace Plugin.Maui.Biometric;
 
-internal class LAContextHelpers
+internal static class LAContextHelpers
 {
     internal static (BiometricHwStatus status, string? errorMessage) GetBiometricHwStatus()
     {

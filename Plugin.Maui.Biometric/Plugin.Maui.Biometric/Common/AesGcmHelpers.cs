@@ -19,19 +19,30 @@ internal static class AesGcmHelpers
     /// </summary>
     internal static SecureAuthenticationResponse Encrypt(byte[] keyBytes, byte[] inputData)
     {
-        var iv         = RandomNumberGenerator.GetBytes(NonceSize);
-        var ciphertext = new byte[inputData.Length];
-        var tag        = new byte[TagSize];
+        try
+        {
+            var iv         = RandomNumberGenerator.GetBytes(NonceSize);
+            var ciphertext = new byte[inputData.Length];
+            var tag        = new byte[TagSize];
 
-        using var aesGcm = new AesGcm(keyBytes, TagSize);
-        aesGcm.Encrypt(iv, inputData, ciphertext, tag);
+            using var aesGcm = new AesGcm(keyBytes, TagSize);
+            aesGcm.Encrypt(iv, inputData, ciphertext, tag);
 
-        // Append tag to ciphertext — matches Android Cipher GCM output layout.
-        var outputData = new byte[ciphertext.Length + tag.Length];
-        ciphertext.CopyTo(outputData, 0);
-        tag.CopyTo(outputData, ciphertext.Length);
+            // Append tag to ciphertext — matches Android Cipher GCM output layout.
+            var outputData = new byte[ciphertext.Length + tag.Length];
+            ciphertext.CopyTo(outputData, 0);
+            tag.CopyTo(outputData, ciphertext.Length);
 
-        return SecureAuthenticationResponse.Success(outputData, iv);
+            return SecureAuthenticationResponse.Success(outputData, iv);
+        }
+        catch (ArgumentException ex)
+        {
+            return SecureAuthenticationResponse.Failure($"Invalid key or parameters: {ex.Message}");
+        }
+        catch (CryptographicException ex)
+        {
+            return SecureAuthenticationResponse.Failure($"Encryption failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -43,17 +54,35 @@ internal static class AesGcmHelpers
         if (iv is null || iv.Length == 0)
             return SecureAuthenticationResponse.Failure("IV is required for AES-GCM decryption.");
 
+        if (iv.Length != NonceSize)
+            return SecureAuthenticationResponse.Failure($"IV must be exactly {NonceSize} bytes for AES-GCM; received {iv.Length} bytes.");
+
         if (inputData.Length < TagSize)
             return SecureAuthenticationResponse.Failure("Input data is too short for AES-GCM decryption.");
 
-        // Split ciphertext and 16-byte tag
-        var ciphertext = inputData[..^TagSize];
-        var tag        = inputData[^TagSize..];
-        var plaintext  = new byte[ciphertext.Length];
+        try
+        {
+            // Split ciphertext and 16-byte tag
+            var ciphertext = inputData[..^TagSize];
+            var tag        = inputData[^TagSize..];
+            var plaintext  = new byte[ciphertext.Length];
 
-        using var aesGcm = new AesGcm(keyBytes, TagSize);
-        aesGcm.Decrypt(iv, ciphertext, tag, plaintext);
+            using var aesGcm = new AesGcm(keyBytes, TagSize);
+            aesGcm.Decrypt(iv, ciphertext, tag, plaintext);
 
-        return SecureAuthenticationResponse.Success(plaintext);
+            return SecureAuthenticationResponse.Success(plaintext);
+        }
+        catch (AuthenticationTagMismatchException)
+        {
+            return SecureAuthenticationResponse.Failure("Decryption failed: authentication tag mismatch — data may be corrupted or the wrong key was used.");
+        }
+        catch (ArgumentException ex)
+        {
+            return SecureAuthenticationResponse.Failure($"Invalid key or parameters: {ex.Message}");
+        }
+        catch (CryptographicException ex)
+        {
+            return SecureAuthenticationResponse.Failure($"Decryption failed: {ex.Message}");
+        }
     }
 }

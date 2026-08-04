@@ -47,6 +47,17 @@ public sealed class CryptoKeyOptions
     public bool RequireUserAuthentication { get; set; } = true;
 
     /// <summary>
+    /// When <c>true</c>, key creation will fail if hardware-backed security (StrongBox, TEE,
+    /// Secure Enclave, TPM) is not available. When <c>false</c> (default), the platform may
+    /// fall back to software-backed storage (DPAPI on Windows, Keychain on Apple, Software keystore on Android).
+    /// <para><b>Android:</b> Fails if the reported security level is "Software".</para>
+    /// <para><b>iOS/macOS:</b> Only enforced for EC keys (Secure Enclave). AES and RSA keys are always Keychain-backed.</para>
+    /// <para><b>Windows:</b> AES keys always use PasswordVault (DPAPI, software). Setting this to <c>true</c>
+    /// with AES on Windows will fail. RSA/EC keys use Windows Hello (TPM-backed where available).</para>
+    /// </summary>
+    public bool RequireHardwareBacking { get; set; }
+
+    /// <summary>
     /// Block mode (CBC, GCM, etc). Default: GCM.
     /// <para>Only applicable to AES keys. RSA/EC keys should use <see cref="BlockMode.None"/>.</para>
     /// <para><b>Note:</b> GCM mode requires <see cref="Padding.None"/>.</para>

@@ -13,15 +13,15 @@ namespace Plugin.Maui.Biometric;
 internal static class BiometricPromptHelpers
 {
     internal const string ActivityErrorMsg = """
-    Your Platform.CurrentActivity either returned null 
-    or is not of type `AndroidX.AppCompat.App.AppCompatActivity`, 
-    ensure your Activity is of the right type and that 
+    Your Platform.CurrentActivity either returned null
+    or is not of type `AndroidX.AppCompat.App.AppCompatActivity`,
+    ensure your Activity is of the right type and that
     its not null when you call this method
     """;
 
     internal const string ExecutorErrorMsg = """
-    Your Platform.CurrentActivity's main executor could not be obtained, 
-    ensure your Activity is of the right type and that 
+    Your Platform.CurrentActivity's main executor could not be obtained,
+    ensure your Activity is of the right type and that
     its not null when you call this method
     """;
 
@@ -53,15 +53,28 @@ internal static class BiometricPromptHelpers
             ?? throw new InvalidOperationException($"Key '{keyId}' could not be retrieved from KeyStore.");
     }
 
-    private static Cipher InitCipher(string transformation, CipherMode mode, IKey key, byte[]? iv = null)
+    private static Cipher InitCipher(string transformation, CipherMode mode, IKey key,
+        BlockMode blockMode, byte[]? iv = null)
     {
         var cipher = Cipher.GetInstance(transformation)
             ?? throw new InvalidOperationException("Failed to create cipher.");
 
         if (mode == CipherMode.DecryptMode && iv != null)
         {
-            var spec = new IvParameterSpec(iv);
-            cipher.Init(mode, key, spec);
+            if (iv.Length == 0)
+                throw new InvalidOperationException("IV cannot be empty for decryption.");
+
+            // GCM requires GCMParameterSpec (with tag length); other modes use IvParameterSpec
+            if (blockMode == Biometric.BlockMode.Gcm)
+            {
+                var spec = new GCMParameterSpec(128, iv); // 128-bit auth tag
+                cipher.Init(mode, key, spec);
+            }
+            else
+            {
+                var spec = new IvParameterSpec(iv);
+                cipher.Init(mode, key, spec);
+            }
         }
         else
         {
@@ -89,7 +102,7 @@ internal static class BiometricPromptHelpers
     /// </summary>
     internal static BiometricPrompt.PromptInfo BuildPromptInfo(BaseAuthenticationRequest request)
     {
-        var strength = request.AuthStrength.Equals(AuthenticatorStrength.Strong)
+        var strength = request.AuthStrength == AuthenticatorStrength.Strong
             ? BiometricManager.Authenticators.BiometricStrong
             : BiometricManager.Authenticators.BiometricWeak;
 
@@ -100,7 +113,10 @@ internal static class BiometricPromptHelpers
 
         if (request.AllowPasswordAuth)
         {
-            builder.SetAllowedAuthenticators(strength | BiometricManager.Authenticators.DeviceCredential);
+            // BiometricWeak | DeviceCredential is not a supported combination on Android.
+            // Enforce BiometricStrong when combining with DeviceCredential.
+            var credentialStrength = BiometricManager.Authenticators.BiometricStrong;
+            builder.SetAllowedAuthenticators(credentialStrength | BiometricManager.Authenticators.DeviceCredential);
         }
         else
         {
@@ -119,10 +135,15 @@ internal static class BiometricPromptHelpers
         if (validationResult != null)
             return validationResult;
 
+        // Reject null/empty IV for decrypt before touching the keystore
+        if (mode == CipherMode.DecryptMode && (request.IV is null || request.IV.Length == 0))
+            return SecureAuthenticationResponse.Failure("IV is required for decryption.");
+
         try
         {
             using var key = GetKeyFromStore(request.KeyId);
             using var cipher = InitCipher(request.Transformation, mode, key,
+                request.BlockMode,
                 mode == CipherMode.DecryptMode ? request.IV : null);
 
             var (activity, executor) = GetActivityAndExecutor();
@@ -136,7 +157,20 @@ internal static class BiometricPromptHelpers
             using var biometricPrompt = new BiometricPrompt(activity, executor, authCallback);
             using var cryptoObject = new BiometricPrompt.CryptoObject(cipher);
 
-            using (token.Register(() => biometricPrompt.CancelAuthentication()))
+            // Handle already-cancelled token before showing the prompt
+            if (token.IsCancellationRequested)
+            {
+                authCallback.Response.TrySetResult(
+                    SecureAuthenticationResponse.Failure("Operation was cancelled."));
+                return await authCallback.Response.Task;
+            }
+
+            using (token.Register(() =>
+            {
+                biometricPrompt.CancelAuthentication();
+                authCallback.Response.TrySetResult(
+                    SecureAuthenticationResponse.Failure("Operation was cancelled."));
+            }))
             {
                 biometricPrompt.Authenticate(promptInfo, cryptoObject);
                 return await authCallback.Response.Task;

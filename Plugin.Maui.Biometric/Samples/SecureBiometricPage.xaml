@@ -15,19 +15,19 @@
                 SemanticProperties.HeadingLevel="Level1" />
 
             <Label
-                Text="Hardware-backed key operations with biometric authentication"
+                Text="Secure key operations with biometric authentication"
                 Style="{StaticResource SubHeadline}"
                 SemanticProperties.HeadingLevel="Level2" />
 
             <Button
                 Text="Create Key"
-                SemanticProperties.Hint="Create a hardware-backed AES-256 key"
+                SemanticProperties.Hint="Create an AES-256 key in secure storage"
                 Clicked="OnCreateKeyClicked"
                 HorizontalOptions="Fill" />
 
             <Button
                 Text="Encrypt"
-                SemanticProperties.Hint="Encrypt sample data using the hardware key"
+                SemanticProperties.Hint="Encrypt sample data using the stored key"
                 Clicked="OnEncryptClicked"
                 HorizontalOptions="Fill" />
 
@@ -39,7 +39,7 @@
 
             <Button
                 Text="Delete Key"
-                SemanticProperties.Hint="Delete the hardware key from the keystore"
+                SemanticProperties.Hint="Delete the key from secure storage"
                 Clicked="OnDeleteKeyClicked"
                 HorizontalOptions="Fill" />
 

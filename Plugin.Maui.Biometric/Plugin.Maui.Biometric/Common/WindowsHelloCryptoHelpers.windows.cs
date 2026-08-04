@@ -132,15 +132,27 @@ internal static class WindowsHelloCryptoHelpers
     /// <summary>
     /// Signs <paramref name="inputData"/> using the Windows Hello key credential.
     /// Biometric authentication is triggered automatically by the Windows Hello prompt.
+    /// <para><b>Note:</b> Windows Hello always uses RSA PKCS1 SHA256 for signing,
+    /// regardless of the algorithm/digest requested by the caller.</para>
     /// </summary>
     internal static async Task<SecureAuthenticationResponse> ProcessSignAsync(
         string keyId, byte[] inputData, CancellationToken token)
     {
+        if (string.IsNullOrWhiteSpace(keyId))
+            return SecureAuthenticationResponse.Failure("Key ID cannot be null or empty.");
+
+        if (inputData is null || inputData.Length == 0)
+            return SecureAuthenticationResponse.Failure("Input data cannot be null or empty.");
+
+        token.ThrowIfCancellationRequested();
+
         try
         {
             var (credential, keyError) = await WindowsKeyVaultHelpers.OpenWindowsHelloKeyAsync(keyId);
             if (credential is null)
                 return SecureAuthenticationResponse.Failure(keyError!);
+
+            token.ThrowIfCancellationRequested();
 
             var buffer     = CryptographicBuffer.CreateFromByteArray(inputData);
             var signResult = await credential.RequestSignAsync(buffer);
@@ -150,6 +162,10 @@ internal static class WindowsHelloCryptoHelpers
 
             CryptographicBuffer.CopyToByteArray(signResult.Result, out byte[] signatureBytes);
             return SecureAuthenticationResponse.Success(signatureBytes);
+        }
+        catch (OperationCanceledException)
+        {
+            return SecureAuthenticationResponse.Failure("Operation was cancelled.");
         }
         catch (Exception ex)
         {
@@ -162,10 +178,24 @@ internal static class WindowsHelloCryptoHelpers
     /// <summary>
     /// Verifies a signature using the Windows Hello public key.
     /// No biometric authentication is required for verification.
+    /// <para><b>Note:</b> Windows Hello keys always use RSA PKCS1 SHA256.
+    /// The algorithm and digest parameters from the caller are ignored;
+    /// verification uses the algorithm determined at key creation time.</para>
     /// </summary>
     internal static async Task<SecureAuthenticationResponse> ProcessVerifyAsync(
         string keyId, byte[] inputData, byte[] signature, CancellationToken token)
     {
+        if (string.IsNullOrWhiteSpace(keyId))
+            return SecureAuthenticationResponse.Failure("Key ID cannot be null or empty.");
+
+        if (inputData is null || inputData.Length == 0)
+            return SecureAuthenticationResponse.Failure("Input data cannot be null or empty.");
+
+        if (signature is null || signature.Length == 0)
+            return SecureAuthenticationResponse.Failure("Signature cannot be null or empty.");
+
+        token.ThrowIfCancellationRequested();
+
         try
         {
             var (credential, keyError) = await WindowsKeyVaultHelpers.OpenWindowsHelloKeyAsync(keyId);

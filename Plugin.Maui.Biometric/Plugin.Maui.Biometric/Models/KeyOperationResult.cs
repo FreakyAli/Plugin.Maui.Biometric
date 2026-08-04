@@ -6,7 +6,7 @@ public sealed class KeyOperationResult
     public bool WasSuccessful { get; private set; }
     public string? ErrorMessage { get; private set; }
     public string? AdditionalInfo { get; private set; }
-    internal string? SecurityLevelName { get; set; }
+    public string? SecurityLevelName { get; internal set; }
 
     public static KeyOperationResult Success(string? securityLevelName = null, string? additionalInfo = null)
     => new()

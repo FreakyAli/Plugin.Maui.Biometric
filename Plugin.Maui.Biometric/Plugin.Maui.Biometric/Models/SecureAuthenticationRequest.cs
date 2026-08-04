@@ -2,30 +2,11 @@ namespace Plugin.Maui.Biometric;
 
 public sealed class SecureAuthenticationRequest : BaseAuthenticationRequest
 {
-    private KeyAlgorithm _algorithm = KeyAlgorithm.Aes;
-    private BlockMode _blockMode = BlockMode.Gcm;
-    private Padding _padding = Padding.None;
-
     public required string KeyId { get; set; }
     public required byte[] InputData { get; set; }
-
-    public KeyAlgorithm Algorithm
-    {
-        get => _algorithm;
-        set => _algorithm = value;
-    }
-
-    public BlockMode BlockMode
-    {
-        get => _blockMode;
-        set => _blockMode = value;
-    }
-
-    public Padding Padding
-    {
-        get => _padding;
-        set => _padding = value;
-    }
+    public KeyAlgorithm Algorithm { get; set; } = KeyAlgorithm.Aes;
+    public BlockMode BlockMode { get; set; } = BlockMode.Gcm;
+    public Padding Padding { get; set; } = Padding.None;
 
     public byte[]? IV { get; set; }
 

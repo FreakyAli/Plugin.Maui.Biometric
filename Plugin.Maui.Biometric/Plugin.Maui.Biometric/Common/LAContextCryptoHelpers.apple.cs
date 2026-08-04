@@ -24,12 +24,28 @@ internal static class LAContextCryptoHelpers
         return null;
     }
 
+    private static SecureAuthenticationResponse? ValidateAesRequest(SecureAuthenticationRequest request)
+    {
+        var baseValidation = ValidateRequest(request);
+        if (baseValidation is not null) return baseValidation;
+
+        if (request.Algorithm != KeyAlgorithm.Aes)
+            return SecureAuthenticationResponse.Failure("Only AES algorithm is supported for symmetric encryption.");
+
+        if (request.BlockMode != BlockMode.Gcm)
+            return SecureAuthenticationResponse.Failure("Only GCM block mode is supported. Set BlockMode to Gcm.");
+
+        if (request.Padding != Padding.None)
+            return SecureAuthenticationResponse.Failure("GCM mode requires Padding to be None.");
+
+        return null;
+    }
+
     // ─── Biometric Authentication ─────────────────────────────────────────────
 
     /// <summary>
     /// Presents the biometric prompt and returns an authenticated <see cref="LAContext"/>
     /// on success.  The caller is responsible for disposing the context.
-    /// Mirrors <c>GetActivityAndExecutor</c> + prompt setup in <c>BiometricPromptHelpers</c>.
     /// </summary>
     private static async Task<(LAContext? context, string? error)> AuthenticateAsync(
         string localizedReason, bool allowPasswordFallback, CancellationToken token)
@@ -57,6 +73,9 @@ internal static class LAContextCryptoHelpers
                 if (!success)
                 {
                     context.Dispose();
+                    // Check cancellation first — a cancelled token produces a generic LAError
+                    if (token.IsCancellationRequested)
+                        return (null, "Authentication was cancelled.");
                     return (null, nsError?.ToString() ?? "Authentication failed.");
                 }
             }
@@ -77,18 +96,10 @@ internal static class LAContextCryptoHelpers
 
     // ─── AES-GCM (symmetric) ─────────────────────────────────────────────────
 
-    /// <summary>
-    /// Encrypts or decrypts data with the AES key stored in the Keychain.
-    /// <para>
-    /// Encrypt output format:  <c>OutputData</c> = ciphertext ‖ 16-byte GCM tag,
-    /// <c>IV</c> = 12-byte nonce.  This matches the GCM output format produced by
-    /// Android's <c>Cipher.doFinal</c>, so payloads are cross-platform compatible.
-    /// </para>
-    /// </summary>
     internal static async Task<SecureAuthenticationResponse> ProcessAesCryptoAsync(
         SecureAuthenticationRequest request, bool encrypt, CancellationToken token)
     {
-        var validation = ValidateRequest(request);
+        var validation = ValidateAesRequest(request);
         if (validation is not null) return validation;
 
         var (context, authError) = await AuthenticateAsync(
@@ -124,10 +135,6 @@ internal static class LAContextCryptoHelpers
 
     // ─── RSA (asymmetric encrypt / decrypt) ───────────────────────────────────
 
-    /// <summary>
-    /// Encrypts with the RSA public key (no biometric needed) or decrypts with
-    /// the biometric-protected private key.
-    /// </summary>
     internal static async Task<SecureAuthenticationResponse> ProcessRsaCryptoAsync(
         SecureAuthenticationRequest request, bool encrypt, CancellationToken token)
     {
@@ -141,10 +148,6 @@ internal static class LAContextCryptoHelpers
             : await DecryptRsaAsync(request, algorithm, token);
     }
 
-    /// <summary>
-    /// Encrypts <paramref name="request"/> data with the RSA public key.
-    /// No biometric authentication is required.
-    /// </summary>
     private static SecureAuthenticationResponse EncryptRsa(
         SecureAuthenticationRequest request, SecKeyAlgorithm algorithm)
     {
@@ -154,12 +157,15 @@ internal static class LAContextCryptoHelpers
             if (publicKey is null)
                 return SecureAuthenticationResponse.Failure(pubError!);
 
-            var ciphertext = publicKey.CreateEncryptedData(
-                algorithm, NSData.FromArray(request.InputData), out NSError? encError);
+            using (publicKey)
+            {
+                var ciphertext = publicKey.CreateEncryptedData(
+                    algorithm, NSData.FromArray(request.InputData), out NSError? encError);
 
-            return ciphertext is null
-                ? SecureAuthenticationResponse.Failure($"RSA encrypt failed: {encError?.GetErrorMessage()}")
-                : SecureAuthenticationResponse.Success(ciphertext.ToArray());
+                return ciphertext is null
+                    ? SecureAuthenticationResponse.Failure($"RSA encrypt failed: {encError?.GetErrorMessage()}")
+                    : SecureAuthenticationResponse.Success(ciphertext.ToArray());
+            }
         }
         catch (Exception ex)
         {
@@ -167,10 +173,6 @@ internal static class LAContextCryptoHelpers
         }
     }
 
-    /// <summary>
-    /// Decrypts <paramref name="request"/> data with the biometric-protected RSA private key.
-    /// Biometric authentication is required.
-    /// </summary>
     private static async Task<SecureAuthenticationResponse> DecryptRsaAsync(
         SecureAuthenticationRequest request, SecKeyAlgorithm algorithm, CancellationToken token)
     {
@@ -185,12 +187,15 @@ internal static class LAContextCryptoHelpers
             if (privateKey is null)
                 return SecureAuthenticationResponse.Failure(privError!);
 
-            var plaintext = privateKey.CreateDecryptedData(
-                algorithm, NSData.FromArray(request.InputData), out NSError? decError);
+            using (privateKey)
+            {
+                var plaintext = privateKey.CreateDecryptedData(
+                    algorithm, NSData.FromArray(request.InputData), out NSError? decError);
 
-            return plaintext is null
-                ? SecureAuthenticationResponse.Failure($"RSA decrypt failed: {decError?.GetErrorMessage()}")
-                : SecureAuthenticationResponse.Success(plaintext.ToArray());
+                return plaintext is null
+                    ? SecureAuthenticationResponse.Failure($"RSA decrypt failed: {decError?.GetErrorMessage()}")
+                    : SecureAuthenticationResponse.Success(plaintext.ToArray());
+            }
         }
         catch (Exception ex)
         {
@@ -204,11 +209,6 @@ internal static class LAContextCryptoHelpers
 
     // ─── Sign (EC Secure Enclave or RSA) ──────────────────────────────────────
 
-    /// <summary>
-    /// Signs <paramref name="inputData"/> with the private key stored under
-    /// <paramref name="keyId"/>.  Biometric authentication is required to access
-    /// the private key.
-    /// </summary>
     internal static async Task<SecureAuthenticationResponse> ProcessSignAsync(
         string keyId, byte[] inputData, KeyAlgorithm algorithm, Digest digest,
         string localizedReason, bool allowPasswordFallback, CancellationToken token)
@@ -229,13 +229,16 @@ internal static class LAContextCryptoHelpers
             if (privateKey is null)
                 return SecureAuthenticationResponse.Failure(keyError!);
 
-            var sigAlgorithm = AppleKeychainHelpers.MapSignatureAlgorithm(algorithm, digest);
-            var signature    = privateKey.CreateSignature(
-                sigAlgorithm, NSData.FromArray(inputData), out NSError? sigError);
+            using (privateKey)
+            {
+                var sigAlgorithm = AppleKeychainHelpers.MapSignatureAlgorithm(algorithm, digest);
+                var signature    = privateKey.CreateSignature(
+                    sigAlgorithm, NSData.FromArray(inputData), out NSError? sigError);
 
-            return signature is null
-                ? SecureAuthenticationResponse.Failure($"Signing failed: {sigError?.GetErrorMessage()}")
-                : SecureAuthenticationResponse.Success(signature.ToArray());
+                return signature is null
+                    ? SecureAuthenticationResponse.Failure($"Signing failed: {sigError?.GetErrorMessage()}")
+                    : SecureAuthenticationResponse.Success(signature.ToArray());
+            }
         }
         catch (Exception ex)
         {
@@ -249,10 +252,6 @@ internal static class LAContextCryptoHelpers
 
     // ─── Verify (EC or RSA) ────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Verifies a signature using the public key stored under <paramref name="keyId"/>.
-    /// No biometric authentication is required for verification.
-    /// </summary>
     internal static Task<SecureAuthenticationResponse> ProcessVerifyAsync(
         string keyId, byte[] inputData, byte[] signature, KeyAlgorithm algorithm, Digest digest)
     {
@@ -267,22 +266,24 @@ internal static class LAContextCryptoHelpers
 
         try
         {
-            // Public key verification — no biometric required.
             var (publicKey, keyError) = AppleKeychainHelpers.RetrieveAsymmetricPublicKey(keyId);
             if (publicKey is null)
                 return Task.FromResult(SecureAuthenticationResponse.Failure(keyError!));
 
-            var sigAlgorithm = AppleKeychainHelpers.MapSignatureAlgorithm(algorithm, digest);
-            bool valid = publicKey.VerifySignature(
-                sigAlgorithm,
-                NSData.FromArray(inputData),
-                NSData.FromArray(signature),
-                out NSError? verifyError);
+            using (publicKey)
+            {
+                var sigAlgorithm = AppleKeychainHelpers.MapSignatureAlgorithm(algorithm, digest);
+                bool valid = publicKey.VerifySignature(
+                    sigAlgorithm,
+                    NSData.FromArray(inputData),
+                    NSData.FromArray(signature),
+                    out NSError? verifyError);
 
-            return Task.FromResult(valid
-                ? SecureAuthenticationResponse.Success(Array.Empty<byte>())
-                : SecureAuthenticationResponse.Failure(
-                    $"Signature verification failed: {verifyError?.GetErrorMessage()}"));
+                return Task.FromResult(valid
+                    ? SecureAuthenticationResponse.Success(Array.Empty<byte>())
+                    : SecureAuthenticationResponse.Failure(
+                        $"Signature verification failed: {verifyError?.GetErrorMessage()}"));
+            }
         }
         catch (Exception ex)
         {

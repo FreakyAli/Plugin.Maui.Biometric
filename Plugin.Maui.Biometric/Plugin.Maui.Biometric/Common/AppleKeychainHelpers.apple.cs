@@ -12,7 +12,7 @@ namespace Plugin.Maui.Biometric;
 internal static class AppleKeychainHelpers
 {
     // AES keys are stored as GenericPassword items under this service name.
-    // RSA/EC keys are stored as SecKind.Key items with ApplicationLabel = keyId.
+    // RSA/EC keys are stored as SecKind.Key items with ApplicationTag = keyId.
     internal const string ServiceName = "Plugin.Maui.Biometric";
 
     // ─── Key Creation ────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ internal static class AppleKeychainHelpers
 
             var sac = new SecAccessControl(SecAccessible.WhenPasscodeSetThisDeviceOnly, acFlags);
 
-            // Private key attributes: permanent storage, labelled by keyId, protected by SAC.
+            // Private key attributes: permanent storage, tagged by keyId, protected by SAC.
             var privateKeyAttrs = new SecKeyParameters
             {
                 IsPermanent = true,
@@ -122,7 +122,7 @@ internal static class AppleKeychainHelpers
 
             var keyStatus = SecKeyChain.Remove(new SecRecord(SecKind.Key)
             {
-                ApplicationLabel = keyId
+                ApplicationTag = NSData.FromString(keyId)
             });
 
             bool bothAcceptable =
@@ -165,10 +165,10 @@ internal static class AppleKeychainHelpers
             if (passwordStatus == SecStatusCode.Success)
                 return KeyOperationResult.Success(additionalInfo: $"Key '{keyId}' exists.");
 
-            // Check RSA/EC (Key)
+            // Check RSA/EC (Key) — stored with ApplicationTag
             SecKeyChain.QueryAsConcreteType(new SecRecord(SecKind.Key)
             {
-                ApplicationLabel = keyId
+                ApplicationTag = NSData.FromString(keyId)
             }, out SecStatusCode keyStatus);
 
             return keyStatus == SecStatusCode.Success
@@ -222,7 +222,7 @@ internal static class AppleKeychainHelpers
         {
             var record = new SecRecord(SecKind.Key)
             {
-                ApplicationLabel = keyId,
+                ApplicationTag = NSData.FromString(keyId),
                 KeyClass = SecKeyClass.Private,
                 AuthenticationContext = authenticatedContext
             };
@@ -248,7 +248,7 @@ internal static class AppleKeychainHelpers
         {
             var record = new SecRecord(SecKind.Key)
             {
-                ApplicationLabel = keyId,
+                ApplicationTag = NSData.FromString(keyId),
                 KeyClass = SecKeyClass.Public
             };
 

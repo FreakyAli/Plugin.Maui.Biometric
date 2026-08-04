@@ -156,7 +156,7 @@ public class AesGcmHelpersTests
     }
 
     [Fact]
-    public void RoundTrip_WrongKey_FailsDecryption()
+    public void RoundTrip_WrongKey_ReturnsFailure()
     {
         var key1 = GenerateKey();
         var key2 = GenerateKey();
@@ -165,13 +165,13 @@ public class AesGcmHelpersTests
         var encrypted = AesGcmHelpers.Encrypt(key1, plaintext);
         Assert.True(encrypted.WasSuccessful);
 
-        // Decrypting with a different key should throw (AesGcm throws AuthenticationTagMismatchException)
-        Assert.ThrowsAny<Exception>(() =>
-            AesGcmHelpers.Decrypt(key2, encrypted.OutputData!, encrypted.IV));
+        var result = AesGcmHelpers.Decrypt(key2, encrypted.OutputData!, encrypted.IV);
+        Assert.False(result.WasSuccessful);
+        Assert.Contains("tag mismatch", result.ErrorMessage);
     }
 
     [Fact]
-    public void RoundTrip_TamperedCiphertext_FailsDecryption()
+    public void RoundTrip_TamperedCiphertext_ReturnsFailure()
     {
         var key = GenerateKey();
         var plaintext = "Tamper test"u8.ToArray();
@@ -183,8 +183,8 @@ public class AesGcmHelpersTests
         var tampered = (byte[])encrypted.OutputData!.Clone();
         tampered[0] ^= 0xFF;
 
-        Assert.ThrowsAny<Exception>(() =>
-            AesGcmHelpers.Decrypt(key, tampered, encrypted.IV));
+        var result = AesGcmHelpers.Decrypt(key, tampered, encrypted.IV);
+        Assert.False(result.WasSuccessful);
     }
 
     // ── Cross-platform format compatibility ───────────────────────────────────
@@ -205,5 +205,60 @@ public class AesGcmHelpersTests
 
         // IV must be 12 bytes (96-bit, NIST recommended for GCM)
         Assert.Equal(12, encrypted.IV!.Length);
+
+        // Verify the tag position: last 16 bytes are the tag, preceding bytes are ciphertext.
+        // Decrypt with the tag split manually to confirm the arrangement.
+        var outputData = encrypted.OutputData;
+        var ciphertextPortion = outputData[..^16];
+        var tagPortion = outputData[^16..];
+        Assert.Equal(plaintext.Length, ciphertextPortion.Length);
+        Assert.Equal(16, tagPortion.Length);
+
+        // Manual decrypt using raw AesGcm confirms the tag position is correct
+        var manualPlaintext = new byte[ciphertextPortion.Length];
+        using var aesGcm = new AesGcm(key, 16);
+        aesGcm.Decrypt(encrypted.IV, ciphertextPortion, tagPortion, manualPlaintext);
+        Assert.Equal(plaintext, manualPlaintext);
+    }
+
+    [Fact]
+    public void Decrypt_WithWrongIVLength_ReturnsFailure()
+    {
+        var key = GenerateKey();
+        var encrypted = AesGcmHelpers.Encrypt(key, "test"u8.ToArray());
+        Assert.True(encrypted.WasSuccessful);
+
+        // Use a 16-byte IV instead of the required 12 bytes
+        var wrongIv = new byte[16];
+        var result = AesGcmHelpers.Decrypt(key, encrypted.OutputData!, wrongIv);
+
+        Assert.False(result.WasSuccessful);
+        Assert.Contains("12 bytes", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void Encrypt_WithInvalidKeySize_ReturnsFailure()
+    {
+        var badKey = new byte[7]; // Not a valid AES key size
+
+        var result = AesGcmHelpers.Encrypt(badKey, "test"u8.ToArray());
+
+        Assert.False(result.WasSuccessful);
+    }
+
+    [Fact]
+    public void Decrypt_AuthTagMismatch_ReturnsFailure()
+    {
+        var key = GenerateKey();
+        var encrypted = AesGcmHelpers.Encrypt(key, "test"u8.ToArray());
+        Assert.True(encrypted.WasSuccessful);
+
+        // Tamper with the auth tag (last 16 bytes)
+        var tampered = (byte[])encrypted.OutputData!.Clone();
+        tampered[^1] ^= 0xFF;
+
+        var result = AesGcmHelpers.Decrypt(key, tampered, encrypted.IV);
+        Assert.False(result.WasSuccessful);
+        Assert.Contains("tag mismatch", result.ErrorMessage);
     }
 }

@@ -188,35 +188,44 @@ internal class AndroidKeyStoreHelpers
 
     internal static string GetVersionBasedSecurityLevel(IKey? key, bool strongBoxAttempted)
     {
+        KeyInfo? keyInfo = null;
+
         if (key is ISecretKey secretKey)
         {
             using var keyFactory = SecretKeyFactory.GetInstance(secretKey.Algorithm, KeyStoreName);
             using var keySpec = keyFactory?.GetKeySpec(secretKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
-            if (keySpec is KeyInfo keyInfo)
-            {
-                if (OperatingSystem.IsAndroidVersionAtLeast(31))
-                {
-                    return keyInfo.SecurityLevel switch
-                    {
-                        (int)KeyStoreSecurityLevel.Strongbox => "StrongBox",
-                        (int)KeyStoreSecurityLevel.TrustedEnvironment => "TEE",
-                        (int)KeyStoreSecurityLevel.Software => "Software",
-                        _ => "Software"
-                    };
-                }
-                else
-                {
-                    var isHardwareBacked = keyInfo.IsInsideSecureHardware;
-                    if (strongBoxAttempted && isHardwareBacked)
-                        return "Hardware-backed (likely StrongBox)";
-                    else if (isHardwareBacked)
-                        return "Hardware-backed (TEE/StrongBox)";
-                    else
-                        return "Software";
-                }
-            }
+            keyInfo = keySpec as KeyInfo;
         }
-        return "Unknown";
+        else if (key is IPrivateKey privateKey)
+        {
+            using var keyFactory = KeyFactory.GetInstance(privateKey.Algorithm, KeyStoreName);
+            using var keySpec = keyFactory?.GetKeySpec(privateKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
+            keyInfo = keySpec as KeyInfo;
+        }
+
+        if (keyInfo is null)
+            return "Unknown";
+
+        if (OperatingSystem.IsAndroidVersionAtLeast(31))
+        {
+            return keyInfo.SecurityLevel switch
+            {
+                (int)KeyStoreSecurityLevel.Strongbox => "StrongBox",
+                (int)KeyStoreSecurityLevel.TrustedEnvironment => "TEE",
+                (int)KeyStoreSecurityLevel.Software => "Software",
+                _ => "Software"
+            };
+        }
+        else
+        {
+            var isHardwareBacked = keyInfo.IsInsideSecureHardware;
+            if (strongBoxAttempted && isHardwareBacked)
+                return "Hardware-backed (likely StrongBox)";
+            else if (isHardwareBacked)
+                return "Hardware-backed (TEE/StrongBox)";
+            else
+                return "Software";
+        }
     }
 
     internal static string GetActualSecurityLevel(string keyId, bool strongBoxAttempted)

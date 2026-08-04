@@ -8,6 +8,17 @@ internal partial class SecureBiometricService
         if (!validationResult.WasSuccessful)
             return Task.FromResult(validationResult);
 
+        // AES/RSA are always Keychain-backed (software); requiring hardware fails for those.
+        if (options.RequireHardwareBacking && options.Algorithm != KeyAlgorithm.Ec)
+            return Task.FromResult(KeyOperationResult.Failure(
+                $"Hardware backing is only available for EC keys on Apple platforms. {options.Algorithm} keys are stored in the Keychain (software-backed)."));
+
+        // EC with RequireHardwareBacking needs Secure Enclave
+        if (options.RequireHardwareBacking && options.Algorithm == KeyAlgorithm.Ec &&
+            !AppleKeychainHelpers.IsSecureEnclaveAvailable())
+            return Task.FromResult(KeyOperationResult.Failure(
+                "Hardware-backed security is required but the Secure Enclave is not available on this device."));
+
         try
         {
             var result = options.Algorithm == KeyAlgorithm.Aes
@@ -31,15 +42,23 @@ internal partial class SecureBiometricService
 
     public partial Task<SecureAuthenticationResponse> EncryptAsync(
         SecureAuthenticationRequest request, CancellationToken token)
-        => request.Algorithm == KeyAlgorithm.Aes
-            ? LAContextCryptoHelpers.ProcessAesCryptoAsync(request, encrypt: true, token)
-            : LAContextCryptoHelpers.ProcessRsaCryptoAsync(request, encrypt: true, token);
+        => request.Algorithm switch
+        {
+            KeyAlgorithm.Aes => LAContextCryptoHelpers.ProcessAesCryptoAsync(request, encrypt: true, token),
+            KeyAlgorithm.Rsa => LAContextCryptoHelpers.ProcessRsaCryptoAsync(request, encrypt: true, token),
+            _ => Task.FromResult(SecureAuthenticationResponse.Failure(
+                $"Encrypt is not supported for {request.Algorithm} keys. Use AES or RSA."))
+        };
 
     public partial Task<SecureAuthenticationResponse> DecryptAsync(
         SecureAuthenticationRequest request, CancellationToken token)
-        => request.Algorithm == KeyAlgorithm.Aes
-            ? LAContextCryptoHelpers.ProcessAesCryptoAsync(request, encrypt: false, token)
-            : LAContextCryptoHelpers.ProcessRsaCryptoAsync(request, encrypt: false, token);
+        => request.Algorithm switch
+        {
+            KeyAlgorithm.Aes => LAContextCryptoHelpers.ProcessAesCryptoAsync(request, encrypt: false, token),
+            KeyAlgorithm.Rsa => LAContextCryptoHelpers.ProcessRsaCryptoAsync(request, encrypt: false, token),
+            _ => Task.FromResult(SecureAuthenticationResponse.Failure(
+                $"Decrypt is not supported for {request.Algorithm} keys. Use AES or RSA."))
+        };
 
     public partial Task<SecureAuthenticationResponse> SignAsync(
         string keyId, byte[] inputData, KeyAlgorithm algorithm, Digest digest, CancellationToken token)

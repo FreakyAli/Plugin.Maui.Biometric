@@ -28,6 +28,15 @@ internal partial class SecureBiometricService
                 return Task.FromResult(KeyOperationResult.Failure($"Key with alias '{keyId}' already exists."));
             }
 
+            // Android Sign/Verify are not yet implemented — reject keys created for those operations.
+            if (options.Algorithm != KeyAlgorithm.Aes &&
+                (options.Operation.HasFlag(CryptoOperation.Sign) || options.Operation.HasFlag(CryptoOperation.Verify)))
+            {
+                return Task.FromResult(KeyOperationResult.Failure(
+                    $"{options.Algorithm} keys with Sign/Verify operations are not yet supported on Android. " +
+                    "This feature will be added in a future release."));
+            }
+
             // Route symmetric (AES) and asymmetric (RSA/EC) to the appropriate generator
             return options.Algorithm == KeyAlgorithm.Aes
                 ? Task.FromResult(CreateSymmetricKey(keyId, options))
@@ -66,10 +75,17 @@ internal partial class SecureBiometricService
         // Try StrongBox first, then fall back
         var result = AndroidKeyStoreHelpers.TryCreateKeyWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: true);
         if (result.WasSuccessful)
+        {
+            if (options.RequireHardwareBacking && result.SecurityLevelName == "Software")
+                return KeyOperationResult.Failure("Hardware-backed security is required but only software storage is available.");
             return result;
+        }
 
         // If StrongBox failed, try without StrongBox (TEE/Software)
-        return AndroidKeyStoreHelpers.TryCreateKeyWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: false);
+        result = AndroidKeyStoreHelpers.TryCreateKeyWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: false);
+        if (result.WasSuccessful && options.RequireHardwareBacking && result.SecurityLevelName == "Software")
+            return KeyOperationResult.Failure("Hardware-backed security is required but only software storage is available.");
+        return result;
     }
 
     /// <summary>
@@ -83,10 +99,17 @@ internal partial class SecureBiometricService
         // Try StrongBox first, then fall back
         var result = AndroidKeyStoreHelpers.TryCreateKeyPairWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: true);
         if (result.WasSuccessful)
+        {
+            if (options.RequireHardwareBacking && result.SecurityLevelName == "Software")
+                return KeyOperationResult.Failure("Hardware-backed security is required but only software storage is available.");
             return result;
+        }
 
         // If StrongBox failed, try without StrongBox (TEE/Software)
-        return AndroidKeyStoreHelpers.TryCreateKeyPairWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: false);
+        result = AndroidKeyStoreHelpers.TryCreateKeyPairWithSecurityLevel(keyId, keyAlgorithm, purpose, options, preferStrongBox: false);
+        if (result.WasSuccessful && options.RequireHardwareBacking && result.SecurityLevelName == "Software")
+            return KeyOperationResult.Failure("Hardware-backed security is required but only software storage is available.");
+        return result;
     }
 
     public partial Task<KeyOperationResult> DeleteKeyAsync(string keyId)

@@ -83,8 +83,15 @@ internal static class WindowsKeyVaultHelpers
         if (string.IsNullOrWhiteSpace(keyId))
             return KeyOperationResult.Failure("KeyId cannot be null or empty.");
 
-        bool deletedAes          = TryDeleteFromVault(AesKeyPrefix + keyId);
-        bool deletedWindowsHello = await TryDeleteWindowsHelloKeyAsync(keyId);
+        var (deletedAes, aesError) = TryDeleteFromVault(AesKeyPrefix + keyId);
+        var (deletedWindowsHello, helloError) = await TryDeleteWindowsHelloKeyAsync(keyId);
+
+        // Report genuine errors (not just "not found")
+        if (aesError is not null || helloError is not null)
+        {
+            var errors = string.Join("; ", new[] { aesError, helloError }.Where(e => e is not null));
+            return KeyOperationResult.Failure($"Delete encountered errors: {errors}");
+        }
 
         return (deletedAes || deletedWindowsHello)
             ? KeyOperationResult.Success(additionalInfo: $"Key '{keyId}' successfully deleted.")
@@ -160,26 +167,40 @@ internal static class WindowsKeyVaultHelpers
 
     // ─── Private Helpers ──────────────────────────────────────────────────────
 
-    private static bool TryDeleteFromVault(string credentialName)
+    private static (bool deleted, string? error) TryDeleteFromVault(string credentialName)
     {
         try
         {
             var vault      = new PasswordVault();
             var credential = vault.Retrieve(VaultResource, credentialName);
             vault.Remove(credential);
-            return true;
+            return (true, null);
         }
-        catch { return false; }
+        catch (Exception ex) when (ex.HResult == unchecked((int)0x80070490)) // not found
+        {
+            return (false, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Vault delete error: {ex.GetFullMessage()}");
+        }
     }
 
-    private static async Task<bool> TryDeleteWindowsHelloKeyAsync(string keyId)
+    private static async Task<(bool deleted, string? error)> TryDeleteWindowsHelloKeyAsync(string keyId)
     {
         try
         {
             await KeyCredentialManager.DeleteAsync(keyId);
-            return true;
+            return (true, null);
         }
-        catch { return false; }
+        catch (Exception ex) when (ex.HResult == unchecked((int)0x80070490)) // not found
+        {
+            return (false, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Windows Hello delete error: {ex.GetFullMessage()}");
+        }
     }
 
     private static bool TryFindInVault(string credentialName)
@@ -189,6 +210,13 @@ internal static class WindowsKeyVaultHelpers
             new PasswordVault().Retrieve(VaultResource, credentialName);
             return true;
         }
-        catch { return false; }
+        catch (Exception ex) when (ex.HResult == unchecked((int)0x80070490)) // not found
+        {
+            return false;
+        }
+        catch
+        {
+            return false; // Other vault errors treated as not-found for existence check
+        }
     }
 }

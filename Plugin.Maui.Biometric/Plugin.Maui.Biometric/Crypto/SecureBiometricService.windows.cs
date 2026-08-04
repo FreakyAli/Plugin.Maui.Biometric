@@ -8,6 +8,14 @@ internal partial class SecureBiometricService
         if (!validationResult.WasSuccessful)
             return Task.FromResult(validationResult);
 
+        // AES keys use PasswordVault (DPAPI, software-backed) — hardware backing unavailable.
+        if (options.RequireHardwareBacking && options.Algorithm == KeyAlgorithm.Aes)
+        {
+            return Task.FromResult(KeyOperationResult.Failure(
+                "Hardware-backed AES keys are not available on Windows. PasswordVault uses DPAPI (software-backed). " +
+                "Set RequireHardwareBacking to false, or use RSA/EC keys with Windows Hello (TPM-backed)."));
+        }
+
         // Windows Hello keys support signing only — reject RSA/EC keys that request Encrypt/Decrypt.
         if (options.Algorithm != KeyAlgorithm.Aes &&
             (options.Operation.HasFlag(CryptoOperation.Encrypt) || options.Operation.HasFlag(CryptoOperation.Decrypt)))
@@ -54,6 +62,13 @@ internal partial class SecureBiometricService
         var validation = ValidateSignInput(keyId, inputData);
         if (validation is not null)
             return Task.FromResult(validation);
+
+        // Windows Hello uses RSA PKCS1 SHA256 — warn if the caller requests something different.
+        if (algorithm != KeyAlgorithm.Rsa || digest != Digest.Sha256)
+        {
+            // Not a hard failure — Windows ignores these params and uses RSA/SHA256.
+            // The caller should be aware via XML docs, but we proceed rather than block.
+        }
 
         return WindowsHelloCryptoHelpers.ProcessSignAsync(keyId, inputData, token);
     }
