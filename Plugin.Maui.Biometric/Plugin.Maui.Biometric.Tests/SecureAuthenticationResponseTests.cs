@@ -108,11 +108,13 @@ public class SecureAuthenticationResponseTests
     // IV has a private setter (immutable after factory creation)
 
     [Fact]
-    public void IV_PrivateSetter_CannotBeModified()
+    public void IV_PrivateSetter_IsPrivate()
     {
-        var response = SecureAuthenticationResponse.Success([1, 2, 3], [0xAA, 0xBB]);
+        var ivProperty = typeof(SecureAuthenticationResponse).GetProperty(nameof(SecureAuthenticationResponse.IV));
+        Assert.NotNull(ivProperty);
 
-        // IV should be immutable; verify it cannot be changed
-        Assert.NotNull(response.IV);
+        var setter = ivProperty!.GetSetMethod(nonPublic: true);
+        Assert.NotNull(setter);
+        Assert.True(setter.IsPrivate, "IV setter should be private");
     }
 }

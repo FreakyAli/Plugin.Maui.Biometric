@@ -26,17 +26,27 @@ public class KeyCreationHelpers
         if (IsAesIncompatiblePaddingInvalid(options))
             return KeyOperationResult.Failure("AES does not support OAEP or PKCS1 padding.");
         if (IsAesBlockPaddingInvalid(options))
-            return KeyOperationResult.Failure("AES with CBC mode requires a padding scheme (e.g., PKCS7); CTR and ECB support NoPadding.");
-        if (IsRsaOaepBlockModeInvalid(options))
-            return KeyOperationResult.Failure("RSA with OAEP padding cannot be used with a BlockMode. Set BlockMode to None.");
+        {
+            var aesError = options.BlockMode == BlockMode.None
+                ? "AES requires a BlockMode. For GCM set Padding to None; for CBC require a padding scheme (e.g., PKCS7)."
+                : "AES with CBC mode requires a padding scheme (e.g., PKCS7); CTR and GCM support NoPadding.";
+            return KeyOperationResult.Failure(aesError);
+        }
+        if (IsRsaBlockModeInvalid(options))
+            return KeyOperationResult.Failure("RSA keys cannot be used with a BlockMode. Set BlockMode to None.");
         if (IsRsaIncompatiblePaddingInvalid(options))
             return KeyOperationResult.Failure("RSA does not support PKCS7 padding.");
         if (IsKeySizeInvalid(options))
-            return KeyOperationResult.Failure("Key size must be between 128 and 8192 bits.");
-        if (IsRsaKeySizeInvalid(options))
-            return KeyOperationResult.Failure("RSA key size must be at least 2048 bits.");
-        if (IsEcKeySizeInvalid(options))
-            return KeyOperationResult.Failure("EC key size must be at least 256 bits.");
+        {
+            var sizeError = options.Algorithm switch
+            {
+                KeyAlgorithm.Aes => "AES key size must be 128, 192, or 256 bits.",
+                KeyAlgorithm.Rsa => "RSA key size must be 2048, 3072, or 4096 bits.",
+                KeyAlgorithm.Ec => "EC key size must be 256, 384, or 521 bits.",
+                _ => "Invalid key size for algorithm."
+            };
+            return KeyOperationResult.Failure(sizeError);
+        }
         return null;
     }
 
@@ -71,21 +81,31 @@ public class KeyCreationHelpers
             (options.BlockMode == BlockMode.Cbc && options.Padding == Padding.None)
         );
 
-    private static bool IsRsaOaepBlockModeInvalid(CryptoKeyOptions options) =>
+    private static bool IsRsaBlockModeInvalid(CryptoKeyOptions options) =>
         options.Algorithm == KeyAlgorithm.Rsa &&
-        options.Padding == Padding.Oaep &&
         options.BlockMode != BlockMode.None;
 
     private static bool IsRsaIncompatiblePaddingInvalid(CryptoKeyOptions options) =>
         options.Algorithm == KeyAlgorithm.Rsa &&
         options.Padding == Padding.Pkcs7;
 
-    private static bool IsKeySizeInvalid(CryptoKeyOptions options) =>
-        options.KeySize < 128 || options.KeySize > 8192;
+    private static bool IsKeySizeInvalid(CryptoKeyOptions options)
+    {
+        return options.Algorithm switch
+        {
+            KeyAlgorithm.Aes => !IsValidAesKeySize(options.KeySize),
+            KeyAlgorithm.Rsa => !IsValidRsaKeySize(options.KeySize),
+            KeyAlgorithm.Ec => !IsValidEcKeySize(options.KeySize),
+            _ => true
+        };
+    }
 
-    private static bool IsRsaKeySizeInvalid(CryptoKeyOptions options) =>
-        options.Algorithm == KeyAlgorithm.Rsa && options.KeySize < 2048;
+    private static bool IsValidAesKeySize(int keySize) =>
+        keySize == 128 || keySize == 192 || keySize == 256;
 
-    private static bool IsEcKeySizeInvalid(CryptoKeyOptions options) =>
-        options.Algorithm == KeyAlgorithm.Ec && options.KeySize < 256;
+    private static bool IsValidRsaKeySize(int keySize) =>
+        keySize >= 2048 && (keySize == 2048 || keySize == 3072 || keySize == 4096);
+
+    private static bool IsValidEcKeySize(int keySize) =>
+        keySize == 256 || keySize == 384 || keySize == 521;
 }

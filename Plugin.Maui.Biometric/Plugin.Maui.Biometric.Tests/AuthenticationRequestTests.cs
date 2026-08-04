@@ -10,9 +10,9 @@ public class AuthenticationRequestTests
         var request = new AuthenticationRequest();
 
         Assert.False(request.AllowPasswordAuth);
-        Assert.Null(request.Title);
-        Assert.Null(request.Subtitle);
-        Assert.Null(request.NegativeText);
+        Assert.Equal(string.Empty, request.Title);
+        Assert.Equal(string.Empty, request.Subtitle);
+        Assert.Equal(string.Empty, request.NegativeText);
         Assert.Null(request.Description);
         Assert.Equal(AuthenticatorStrength.Strong, request.AuthStrength);
     }

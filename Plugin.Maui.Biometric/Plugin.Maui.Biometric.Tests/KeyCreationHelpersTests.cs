@@ -176,7 +176,7 @@ public class KeyCreationHelpersTests
         var result = Validate("key", options);
 
         Assert.False(result.WasSuccessful);
-        Assert.Contains("BlockMode", result.ErrorMessage);
+        Assert.Contains("BlockMode", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]
@@ -204,23 +204,21 @@ public class KeyCreationHelpersTests
         Assert.True(result.WasSuccessful);
     }
 
-    // ── Rule 8: RSA with OAEP cannot have a BlockMode ────────────────────────
+    // ── Rule 8: RSA cannot have a BlockMode ───────────────────────────────────
 
-    // Note: BlockMode.Gcm is excluded here because RSA + OAEP + GCM hits Rule 4
-    // ("GCM cannot be used with padding") before reaching Rule 8.
+    // RSA keys do not support any BlockMode; they only work with BlockMode.None
     [Theory]
     [InlineData(BlockMode.Cbc)]
     [InlineData(BlockMode.Ctr)]
-    public void RsaWithOaepAndNonNoneBlockMode_ReturnsFailure(BlockMode blockMode)
+    public void RsaWithNonNoneBlockMode_ReturnsFailure(BlockMode blockMode)
     {
         var options = ValidRsa();
-        options.Padding   = Padding.Oaep;
         options.BlockMode = blockMode;
 
         var result = Validate("key", options);
 
         Assert.False(result.WasSuccessful);
-        Assert.Contains("OAEP", result.ErrorMessage);
+        Assert.Contains("BlockMode", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -257,12 +255,12 @@ public class KeyCreationHelpersTests
     public void KeySizeAboveMaximum_ReturnsFailure()
     {
         var options = ValidAes();
-        options.KeySize = 8193;
+        options.KeySize = 512;  // Invalid AES size (must be 128, 192, or 256)
 
         var result = Validate("key", options);
 
         Assert.False(result.WasSuccessful);
-        Assert.Contains("8192", result.ErrorMessage);
+        Assert.Contains("128", result.ErrorMessage);  // AES size validation message
     }
 
     [Fact]
@@ -279,9 +277,9 @@ public class KeyCreationHelpersTests
     [Fact]
     public void KeySizeAtMaximumBoundary_Succeeds()
     {
-        // Use RSA so the RSA min-size rule (2048) doesn't interfere
+        // Use RSA with maximum supported size (4096)
         var options = ValidRsa();
-        options.KeySize = 8192;
+        options.KeySize = 4096;
 
         var result = Validate("key", options);
 

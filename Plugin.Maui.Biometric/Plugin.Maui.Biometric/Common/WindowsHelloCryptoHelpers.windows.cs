@@ -22,6 +22,15 @@ internal static class WindowsHelloCryptoHelpers
         if (request.InputData is null || request.InputData.Length == 0)
             return SecureAuthenticationResponse.Failure("Input data cannot be null or empty.");
 
+        if (request.Algorithm != KeyAlgorithm.Aes)
+            return SecureAuthenticationResponse.Failure("Only AES-GCM encryption is supported on Windows.");
+
+        if (request.BlockMode != BlockMode.Gcm)
+            return SecureAuthenticationResponse.Failure("Only GCM block mode is supported on Windows. Set BlockMode to Gcm.");
+
+        if (request.Padding != Padding.None)
+            return SecureAuthenticationResponse.Failure("GCM mode requires Padding to be None.");
+
         return null;
     }
 
@@ -72,12 +81,22 @@ internal static class WindowsHelloCryptoHelpers
         var validation = ValidateRequest(request);
         if (validation is not null) return validation;
 
-        var (verified, authError) = await AuthenticateAsync(request.Title);
-        if (!verified)
-            return SecureAuthenticationResponse.Failure(authError!);
+        token.ThrowIfCancellationRequested();
 
         try
         {
+            var availability = await UserConsentVerifier.CheckAvailabilityAsync();
+            if (availability != UserConsentVerifierAvailability.Available)
+                return SecureAuthenticationResponse.Failure("Windows Hello is not available on this device.");
+
+            token.ThrowIfCancellationRequested();
+
+            var (verified, authError) = await AuthenticateAsync(request.Title);
+            if (!verified)
+                return SecureAuthenticationResponse.Failure(authError!);
+
+            token.ThrowIfCancellationRequested();
+
             var (keyBytes, keyError) = WindowsKeyVaultHelpers.RetrieveSymmetricKey(request.KeyId);
             if (keyBytes is null)
                 return SecureAuthenticationResponse.Failure(keyError!);
@@ -123,6 +142,10 @@ internal static class WindowsHelloCryptoHelpers
             {
                 Array.Clear(keyBytes, 0, keyBytes.Length);
             }
+        }
+        catch (OperationCanceledException)
+        {
+            return SecureAuthenticationResponse.Failure("Operation was cancelled.");
         }
         catch (Exception ex)
         {
