@@ -83,7 +83,11 @@ internal static class BiometricPromptHelpers
         return (activity, executor);
     }
 
-    private static BiometricPrompt.PromptInfo BuildPromptInfo(SecureAuthenticationRequest request)
+    /// <summary>
+    /// Builds a <see cref="BiometricPrompt.PromptInfo"/> from any <see cref="BaseAuthenticationRequest"/>.
+    /// Shared between standard biometric auth and secure crypto auth flows.
+    /// </summary>
+    internal static BiometricPrompt.PromptInfo BuildPromptInfo(BaseAuthenticationRequest request)
     {
         var strength = request.AuthStrength.Equals(AuthenticatorStrength.Strong)
             ? BiometricManager.Authenticators.BiometricStrong

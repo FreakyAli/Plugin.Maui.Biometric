@@ -22,7 +22,7 @@ internal sealed class SecureAuthCallback : BiometricPrompt.AuthenticationCallbac
                 return;
             }
             var iv = cipher.GetIV();
-            var cipherData = cipher?.DoFinal(Request.InputData);
+            var cipherData = cipher.DoFinal(Request.InputData);
             if (cipherData is null || cipherData.Length == 0)
             {
                 Response.TrySetResult(SecureAuthenticationResponse.Failure("Failed to retrieve cipher data after successful authentication."));

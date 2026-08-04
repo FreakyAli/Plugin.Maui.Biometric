@@ -1,6 +1,6 @@
 namespace Plugin.Maui.Biometric;
 
-public class KeyCreationHelpers
+internal class KeyCreationHelpers
 {
     public static KeyOperationResult PerformKeyCreationValidation(string keyId, CryptoKeyOptions options)
     {

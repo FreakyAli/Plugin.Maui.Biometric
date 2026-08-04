@@ -79,26 +79,7 @@ internal partial class BiometricService
                 };
             }
 
-            var strength = request.AuthStrength.Equals(AuthenticatorStrength.Strong) ?
-               BiometricManager.Authenticators.BiometricStrong :
-               BiometricManager.Authenticators.BiometricWeak;
-
-            var allInfo = new BiometricPrompt.PromptInfo.Builder()
-                    .SetTitle(request.Title)
-                    .SetSubtitle(request.Subtitle)
-                    .SetDescription(request.Description);
-
-            if (request.AllowPasswordAuth)
-            {
-                allInfo.SetAllowedAuthenticators(strength | BiometricManager.Authenticators.DeviceCredential);
-            }
-            else
-            {
-                allInfo.SetNegativeButtonText(request.NegativeText);
-                allInfo.SetAllowedAuthenticators(strength);
-            }
-
-            var promptInfo = allInfo.Build();
+            var promptInfo = BiometricPromptHelpers.BuildPromptInfo(request);
             var authCallback = new AuthCallback()
             {
                 Response = new TaskCompletionSource<AuthenticationResponse>()

@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Plugin.Maui.Biometric;
 
+[Experimental("BIOCRYPTO001")]
 public static class SecureBiometricAuthenticationService
 {
     private static readonly Lazy<ISecureBiometric> defaultImpl =

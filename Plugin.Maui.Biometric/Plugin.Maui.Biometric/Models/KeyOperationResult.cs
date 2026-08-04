@@ -3,9 +3,9 @@ namespace Plugin.Maui.Biometric;
 public sealed class KeyOperationResult
 {
     private KeyOperationResult() { }
-    public bool WasSuccessful { get; set; }
-    public string? ErrorMessage { get; set; }
-    public string? AdditionalInfo { get; set; }
+    public bool WasSuccessful { get; private set; }
+    public string? ErrorMessage { get; private set; }
+    public string? AdditionalInfo { get; private set; }
     internal string? SecurityLevelName { get; set; }
 
     public static KeyOperationResult Success(string? securityLevelName = null, string? additionalInfo = null)

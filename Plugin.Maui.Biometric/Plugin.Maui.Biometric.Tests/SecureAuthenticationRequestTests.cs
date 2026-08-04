@@ -19,7 +19,7 @@ public class SecureAuthenticationRequestTests
         var request = BuildRequest();
 
         Assert.Equal(KeyAlgorithm.Aes, request.Algorithm);
-        Assert.Equal(BlockMode.None, request.BlockMode);
+        Assert.Equal(BlockMode.Gcm, request.BlockMode);
         Assert.Equal(Padding.None, request.Padding);
         Assert.Null(request.IV);
     }

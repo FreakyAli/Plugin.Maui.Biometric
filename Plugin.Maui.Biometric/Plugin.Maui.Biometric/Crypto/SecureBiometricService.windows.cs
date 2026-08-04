@@ -8,6 +8,15 @@ internal partial class SecureBiometricService
         if (!validationResult.WasSuccessful)
             return Task.FromResult(validationResult);
 
+        // Windows Hello keys support signing only — reject RSA/EC keys that request Encrypt/Decrypt.
+        if (options.Algorithm != KeyAlgorithm.Aes &&
+            (options.Operation.HasFlag(CryptoOperation.Encrypt) || options.Operation.HasFlag(CryptoOperation.Decrypt)))
+        {
+            return Task.FromResult(KeyOperationResult.Failure(
+                $"{options.Algorithm} keys on Windows support signing only — Encrypt/Decrypt is not available. " +
+                "Use AES for encryption or create RSA/EC keys with Sign|Verify operations only."));
+        }
+
         try
         {
             return options.Algorithm == KeyAlgorithm.Aes
@@ -40,28 +49,21 @@ internal partial class SecureBiometricService
             : WindowsHelloCryptoHelpers.ProcessRsaCryptoAsync(request, encrypt: false, token);
 
     public partial Task<SecureAuthenticationResponse> SignAsync(
-        string keyId, byte[] inputData, CancellationToken token)
+        string keyId, byte[] inputData, KeyAlgorithm algorithm, Digest digest, CancellationToken token)
     {
-        if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureAuthenticationResponse.Failure("KeyId cannot be null or empty."));
-
-        if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureAuthenticationResponse.Failure("Input data cannot be null or empty."));
+        var validation = ValidateSignInput(keyId, inputData);
+        if (validation is not null)
+            return Task.FromResult(validation);
 
         return WindowsHelloCryptoHelpers.ProcessSignAsync(keyId, inputData, token);
     }
 
     public partial Task<SecureAuthenticationResponse> VerifyAsync(
-        string keyId, byte[] inputData, byte[] signature, CancellationToken token)
+        string keyId, byte[] inputData, byte[] signature, KeyAlgorithm algorithm, Digest digest, CancellationToken token)
     {
-        if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureAuthenticationResponse.Failure("KeyId cannot be null or empty."));
-
-        if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureAuthenticationResponse.Failure("Input data cannot be null or empty."));
-
-        if (signature is null || signature.Length == 0)
-            return Task.FromResult(SecureAuthenticationResponse.Failure("Signature cannot be null or empty."));
+        var validation = ValidateVerifyInput(keyId, inputData, signature);
+        if (validation is not null)
+            return Task.FromResult(validation);
 
         return WindowsHelloCryptoHelpers.ProcessVerifyAsync(keyId, inputData, signature, token);
     }

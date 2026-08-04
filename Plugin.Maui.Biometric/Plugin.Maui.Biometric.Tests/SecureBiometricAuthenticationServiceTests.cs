@@ -26,12 +26,12 @@ public class SecureBiometricAuthenticationServiceTests
     }
 
     // On net10.0 (no platform), the fallback .net implementation is used.
-    // These tests verify that the fallback correctly throws NotImplementedException.
+    // These tests verify that the fallback correctly throws PlatformNotSupportedException.
 
     [Fact]
     public async Task Default_CreateKeyAsync_Throws_OnUnsupportedPlatform()
     {
-        await Assert.ThrowsAsync<NotImplementedException>(
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
             () => SecureBiometricAuthenticationService.Default.CreateKeyAsync(
                 "test", new CryptoKeyOptions()));
     }
@@ -39,14 +39,14 @@ public class SecureBiometricAuthenticationServiceTests
     [Fact]
     public async Task Default_DeleteKeyAsync_Throws_OnUnsupportedPlatform()
     {
-        await Assert.ThrowsAsync<NotImplementedException>(
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
             () => SecureBiometricAuthenticationService.Default.DeleteKeyAsync("test"));
     }
 
     [Fact]
     public async Task Default_KeyExistsAsync_Throws_OnUnsupportedPlatform()
     {
-        await Assert.ThrowsAsync<NotImplementedException>(
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
             () => SecureBiometricAuthenticationService.Default.KeyExistsAsync("test"));
     }
 
@@ -59,7 +59,7 @@ public class SecureBiometricAuthenticationServiceTests
             InputData = [1, 2, 3]
         };
 
-        await Assert.ThrowsAsync<NotImplementedException>(
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
             () => SecureBiometricAuthenticationService.Default.EncryptAsync(
                 request, CancellationToken.None));
     }
@@ -73,8 +73,24 @@ public class SecureBiometricAuthenticationServiceTests
             InputData = [1, 2, 3]
         };
 
-        await Assert.ThrowsAsync<NotImplementedException>(
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
             () => SecureBiometricAuthenticationService.Default.DecryptAsync(
                 request, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Default_SignAsync_Throws_OnUnsupportedPlatform()
+    {
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
+            () => SecureBiometricAuthenticationService.Default.SignAsync(
+                "test", [1, 2, 3], KeyAlgorithm.Ec, Digest.Sha256, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Default_VerifyAsync_Throws_OnUnsupportedPlatform()
+    {
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
+            () => SecureBiometricAuthenticationService.Default.VerifyAsync(
+                "test", [1, 2, 3], [4, 5, 6], KeyAlgorithm.Ec, Digest.Sha256, CancellationToken.None));
     }
 }

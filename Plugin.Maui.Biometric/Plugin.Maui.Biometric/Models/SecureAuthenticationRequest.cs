@@ -3,7 +3,7 @@ namespace Plugin.Maui.Biometric;
 public sealed class SecureAuthenticationRequest : BaseAuthenticationRequest
 {
     private KeyAlgorithm _algorithm = KeyAlgorithm.Aes;
-    private BlockMode _blockMode = BlockMode.None;
+    private BlockMode _blockMode = BlockMode.Gcm;
     private Padding _padding = Padding.None;
 
     public required string KeyId { get; set; }
@@ -28,14 +28,6 @@ public sealed class SecureAuthenticationRequest : BaseAuthenticationRequest
     }
 
     public byte[]? IV { get; set; }
-
-    public SecureAuthenticationRequest ValidateCryptoOptions()
-    {
-        if (Algorithm == KeyAlgorithm.Aes && BlockMode == BlockMode.None && Padding == Padding.None)
-            throw new InvalidOperationException(
-                "AES requires a BlockMode. For GCM set Padding to None; for CBC require a padding scheme (e.g., PKCS7).");
-        return this;
-    }
 
 #if ANDROID
     internal string Transformation =>

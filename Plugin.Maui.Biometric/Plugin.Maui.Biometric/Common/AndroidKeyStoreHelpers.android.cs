@@ -99,6 +99,93 @@ internal class AndroidKeyStoreHelpers
         }
     }
 
+    /// <summary>
+    /// Creates an RSA or EC key pair using <see cref="KeyPairGenerator"/>.
+    /// Mirrors <see cref="TryCreateKeyWithSecurityLevel"/> for symmetric keys.
+    /// </summary>
+    internal static KeyOperationResult TryCreateKeyPairWithSecurityLevel
+                    (string keyId, string keyAlgorithm, KeyStorePurpose purpose,
+                    CryptoKeyOptions options, bool preferStrongBox)
+    {
+        try
+        {
+            using var keyPairGen = KeyPairGenerator.GetInstance(keyAlgorithm, KeyStoreName);
+            if (keyPairGen == null)
+            {
+                return KeyOperationResult.Failure($"Failed to create key pair generator for algorithm {keyAlgorithm}.");
+            }
+
+            var keyGenSpecBuilder = new KeyGenParameterSpec.Builder(keyId, purpose)
+                .SetKeySize(options.KeySize)
+                .SetUserAuthenticationRequired(options.RequireUserAuthentication);
+
+            // Biometric-specific configuration
+            if (options.RequireUserAuthentication)
+            {
+                if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
+                {
+#pragma warning disable CA1422
+                    keyGenSpecBuilder.SetUserAuthenticationValidityDurationSeconds(-1);
+#pragma warning restore CA1422
+                }
+            }
+
+            // Algorithm-specific configuration
+            if (options.Algorithm == KeyAlgorithm.Rsa)
+            {
+                keyGenSpecBuilder
+                    .SetEncryptionPaddings(MapPadding(options.Padding))
+                    .SetSignaturePaddings(KeyProperties.SignaturePaddingRsaPkcs1)
+                    .SetDigests(MapDigest(options.Digest));
+            }
+            else if (options.Algorithm == KeyAlgorithm.Ec)
+            {
+                keyGenSpecBuilder.SetDigests(MapDigest(options.Digest));
+            }
+
+            // Try StrongBox if requested and supported (Android 9+)
+            if (preferStrongBox && OperatingSystem.IsAndroidVersionAtLeast(28))
+            {
+                keyGenSpecBuilder.SetIsStrongBoxBacked(true);
+            }
+
+            var keyGenSpec = keyGenSpecBuilder.Build();
+            keyPairGen.Initialize(keyGenSpec);
+
+            var keyPair = keyPairGen.GenerateKeyPair();
+
+            // Determine actual security level achieved
+            var securityLevelName = GetActualSecurityLevel(keyId, preferStrongBox);
+
+            var securityMessage = preferStrongBox
+                ? $"Key pair created with {securityLevelName} security (StrongBox {(securityLevelName == "StrongBox" ? "achieved" : "fell back")})"
+                : $"Key pair created with {securityLevelName} security";
+
+            return KeyOperationResult.Success(securityLevelName, securityMessage);
+        }
+        catch (ProviderException ex) when (ex.Message?.Contains("StrongBox") == true)
+        {
+            if (preferStrongBox)
+            {
+                // StrongBox failed, caller should retry without it
+                return KeyOperationResult.Failure($"StrongBox unavailable: {ex.GetFullMessage()}");
+            }
+            return KeyOperationResult.Failure($"Key pair creation failed: {ex.GetFullMessage()}");
+        }
+        catch (InvalidAlgorithmParameterException ex)
+        {
+            return KeyOperationResult.Failure($"Invalid parameters for '{keyAlgorithm}': {ex.GetFullMessage()}");
+        }
+        catch (KeyStoreException ex)
+        {
+            return KeyOperationResult.Failure($"KeyStore error while creating key pair '{keyId}': {ex.GetFullMessage()}");
+        }
+        catch (Exception ex)
+        {
+            return KeyOperationResult.Failure($"Unexpected error: {ex.GetFullMessage()}");
+        }
+    }
+
     internal static string GetVersionBasedSecurityLevel(IKey? key, bool strongBoxAttempted)
     {
         if (key is ISecretKey secretKey)

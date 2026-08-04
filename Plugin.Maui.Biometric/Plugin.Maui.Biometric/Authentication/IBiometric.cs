@@ -8,6 +8,6 @@ public interface IBiometric
 
     Task<BiometricType[]> GetEnrolledBiometricTypesAsync();
 
-    [Obsolete("This property is now obselete since the library now supports all platforms.")]
+    [Obsolete("This property is now obselete since the library now supports all platforms.(Except Tizen obviously)")]
     bool IsPlatformSupported { get; }
 }

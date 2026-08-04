@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Windows.Security.Credentials;
 using Windows.Security.Credentials.UI;
 using Windows.Security.Cryptography;
@@ -85,12 +84,6 @@ internal static class WindowsHelloCryptoHelpers
 
         try
         {
-            var availability = await UserConsentVerifier.CheckAvailabilityAsync();
-            if (availability != UserConsentVerifierAvailability.Available)
-                return SecureAuthenticationResponse.Failure("Windows Hello is not available on this device.");
-
-            token.ThrowIfCancellationRequested();
-
             var (verified, authError) = await AuthenticateAsync(request.Title);
             if (!verified)
                 return SecureAuthenticationResponse.Failure(authError!);
@@ -104,8 +97,8 @@ internal static class WindowsHelloCryptoHelpers
             try
             {
                 return encrypt
-                    ? PerformAesEncryption(request, keyBytes)
-                    : PerformAesDecryption(request, keyBytes);
+                    ? AesGcmHelpers.Encrypt(keyBytes, request.InputData)
+                    : AesGcmHelpers.Decrypt(keyBytes, request.InputData, request.IV);
             }
             finally
             {
@@ -121,44 +114,6 @@ internal static class WindowsHelloCryptoHelpers
             return SecureAuthenticationResponse.Failure(
                 $"{(encrypt ? "Encrypt" : "Decrypt")} failed: {ex.GetFullMessage()}");
         }
-    }
-
-    private static SecureAuthenticationResponse PerformAesEncryption(
-        SecureAuthenticationRequest request, byte[] keyBytes)
-    {
-        var iv         = RandomNumberGenerator.GetBytes(12);  // 96-bit nonce
-        var ciphertext = new byte[request.InputData.Length];
-        var tag        = new byte[16];                         // 128-bit auth tag
-
-        using var aesGcm = new AesGcm(keyBytes, 16);
-        aesGcm.Encrypt(iv, request.InputData, ciphertext, tag);
-
-        // Append tag to ciphertext — matches Android/Apple GCM output layout.
-        var outputData = new byte[ciphertext.Length + tag.Length];
-        ciphertext.CopyTo(outputData, 0);
-        tag.CopyTo(outputData, ciphertext.Length);
-
-        return SecureAuthenticationResponse.Success(outputData, iv);
-    }
-
-    private static SecureAuthenticationResponse PerformAesDecryption(
-        SecureAuthenticationRequest request, byte[] keyBytes)
-    {
-        if (request.IV is null || request.IV.Length == 0)
-            return SecureAuthenticationResponse.Failure("IV is required for AES-GCM decryption.");
-
-        if (request.InputData.Length < 16)
-            return SecureAuthenticationResponse.Failure("Input data is too short for AES-GCM decryption.");
-
-        // Split ciphertext and 16-byte tag
-        var ciphertext = request.InputData[..^16];
-        var tag        = request.InputData[^16..];
-        var plaintext  = new byte[ciphertext.Length];
-
-        using var aesGcm = new AesGcm(keyBytes, 16);
-        aesGcm.Decrypt(request.IV, ciphertext, tag, plaintext);
-
-        return SecureAuthenticationResponse.Success(plaintext);
     }
 
     // ─── RSA (asymmetric encrypt / decrypt) ───────────────────────────────────

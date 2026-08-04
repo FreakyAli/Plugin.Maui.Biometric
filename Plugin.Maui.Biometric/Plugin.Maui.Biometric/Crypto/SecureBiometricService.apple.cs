@@ -42,38 +42,31 @@ internal partial class SecureBiometricService
             : LAContextCryptoHelpers.ProcessRsaCryptoAsync(request, encrypt: false, token);
 
     public partial Task<SecureAuthenticationResponse> SignAsync(
-        string keyId, byte[] inputData, CancellationToken token)
+        string keyId, byte[] inputData, KeyAlgorithm algorithm, Digest digest, CancellationToken token)
     {
-        if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureAuthenticationResponse.Failure("KeyId cannot be null or empty."));
-
-        if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureAuthenticationResponse.Failure("Input data cannot be null or empty."));
+        var validation = ValidateSignInput(keyId, inputData);
+        if (validation is not null)
+            return Task.FromResult(validation);
 
         return LAContextCryptoHelpers.ProcessSignAsync(
             keyId, inputData,
-            algorithm:             KeyAlgorithm.Ec,
-            digest:                Digest.Sha256,
+            algorithm:             algorithm,
+            digest:                digest,
             localizedReason:       "Authenticate to sign data",
             allowPasswordFallback: false,
             token);
     }
 
     public partial Task<SecureAuthenticationResponse> VerifyAsync(
-        string keyId, byte[] inputData, byte[] signature, CancellationToken token)
+        string keyId, byte[] inputData, byte[] signature, KeyAlgorithm algorithm, Digest digest, CancellationToken token)
     {
-        if (string.IsNullOrWhiteSpace(keyId))
-            return Task.FromResult(SecureAuthenticationResponse.Failure("KeyId cannot be null or empty."));
-
-        if (inputData is null || inputData.Length == 0)
-            return Task.FromResult(SecureAuthenticationResponse.Failure("Input data cannot be null or empty."));
-
-        if (signature is null || signature.Length == 0)
-            return Task.FromResult(SecureAuthenticationResponse.Failure("Signature cannot be null or empty."));
+        var validation = ValidateVerifyInput(keyId, inputData, signature);
+        if (validation is not null)
+            return Task.FromResult(validation);
 
         return LAContextCryptoHelpers.ProcessVerifyAsync(
             keyId, inputData, signature,
-            algorithm: KeyAlgorithm.Ec,
-            digest:    Digest.Sha256);
+            algorithm: algorithm,
+            digest:    digest);
     }
 }

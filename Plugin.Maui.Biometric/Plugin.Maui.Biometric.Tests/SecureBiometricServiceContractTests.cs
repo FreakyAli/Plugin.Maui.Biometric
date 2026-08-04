@@ -184,4 +184,114 @@ public class SecureBiometricServiceContractTests
 
         Assert.NotNull(result);
     }
+
+    // ── SignAsync ──────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SignAsync_OnSuccess_ReturnsSuccessResponse()
+    {
+        byte[] signature = [0xAA, 0xBB, 0xCC, 0xDD];
+        _sut.SignResult = SecureAuthenticationResponse.Success(signature);
+
+        var result = await _sut.SignAsync("test-key", [1, 2, 3],
+            KeyAlgorithm.Ec, Digest.Sha256, CancellationToken.None);
+
+        Assert.True(result.WasSuccessful);
+        Assert.Equal(signature, result.OutputData);
+    }
+
+    [Fact]
+    public async Task SignAsync_OnFailure_ReturnsFailureResponse()
+    {
+        _sut.SignResult = SecureAuthenticationResponse.Failure("Signing not supported");
+
+        var result = await _sut.SignAsync("test-key", [1, 2, 3],
+            KeyAlgorithm.Ec, Digest.Sha256, CancellationToken.None);
+
+        Assert.False(result.WasSuccessful);
+        Assert.Equal("Signing not supported", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SignAsync_WhenCancelled_ThrowsOperationCanceledException()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => _sut.SignAsync("test-key", [1, 2, 3],
+                KeyAlgorithm.Ec, Digest.Sha256, cts.Token));
+    }
+
+    [Fact]
+    public async Task SignAsync_PassesAlgorithmAndDigestToImplementation()
+    {
+        await _sut.SignAsync("key", [1], KeyAlgorithm.Rsa, Digest.Sha512, CancellationToken.None);
+
+        Assert.Equal(KeyAlgorithm.Rsa, _sut.LastSignAlgorithm);
+        Assert.Equal(Digest.Sha512, _sut.LastSignDigest);
+    }
+
+    [Fact]
+    public async Task SignAsync_ReturnsNonNullResponse()
+    {
+        var result = await _sut.SignAsync("key", [1, 2, 3],
+            KeyAlgorithm.Ec, Digest.Sha256, CancellationToken.None);
+
+        Assert.NotNull(result);
+    }
+
+    // ── VerifyAsync ───────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task VerifyAsync_OnSuccess_ReturnsSuccessResponse()
+    {
+        _sut.VerifyResult = SecureAuthenticationResponse.Success(Array.Empty<byte>());
+
+        var result = await _sut.VerifyAsync("test-key", [1, 2, 3], [4, 5, 6],
+            KeyAlgorithm.Ec, Digest.Sha256, CancellationToken.None);
+
+        Assert.True(result.WasSuccessful);
+    }
+
+    [Fact]
+    public async Task VerifyAsync_OnFailure_ReturnsFailureResponse()
+    {
+        _sut.VerifyResult = SecureAuthenticationResponse.Failure("Signature invalid");
+
+        var result = await _sut.VerifyAsync("test-key", [1, 2, 3], [4, 5, 6],
+            KeyAlgorithm.Ec, Digest.Sha256, CancellationToken.None);
+
+        Assert.False(result.WasSuccessful);
+        Assert.Equal("Signature invalid", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WhenCancelled_ThrowsOperationCanceledException()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => _sut.VerifyAsync("test-key", [1, 2, 3], [4, 5, 6],
+                KeyAlgorithm.Ec, Digest.Sha256, cts.Token));
+    }
+
+    [Fact]
+    public async Task VerifyAsync_PassesAlgorithmAndDigestToImplementation()
+    {
+        await _sut.VerifyAsync("key", [1], [2], KeyAlgorithm.Rsa, Digest.Sha384, CancellationToken.None);
+
+        Assert.Equal(KeyAlgorithm.Rsa, _sut.LastVerifyAlgorithm);
+        Assert.Equal(Digest.Sha384, _sut.LastVerifyDigest);
+    }
+
+    [Fact]
+    public async Task VerifyAsync_ReturnsNonNullResponse()
+    {
+        var result = await _sut.VerifyAsync("key", [1, 2, 3], [4, 5, 6],
+            KeyAlgorithm.Ec, Digest.Sha256, CancellationToken.None);
+
+        Assert.NotNull(result);
+    }
 }

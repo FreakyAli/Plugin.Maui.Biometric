@@ -66,6 +66,11 @@ internal static class LAContextCryptoHelpers
             context.Dispose();
             return (null, "Authentication was cancelled.");
         }
+        catch (Exception ex)
+        {
+            context.Dispose();
+            return (null, $"Authentication error: {ex.GetFullMessage()}");
+        }
 
         return (context, null);
     }
@@ -91,46 +96,18 @@ internal static class LAContextCryptoHelpers
         if (context is null)
             return SecureAuthenticationResponse.Failure(authError!);
 
+        byte[]? keyBytes = null;
         try
         {
-            var (keyBytes, keyError) = AppleKeychainHelpers.RetrieveSymmetricKey(request.KeyId, context);
-            if (keyBytes is null)
+            var (retrievedKey, keyError) = AppleKeychainHelpers.RetrieveSymmetricKey(request.KeyId, context);
+            if (retrievedKey is null)
                 return SecureAuthenticationResponse.Failure(keyError!);
 
-            if (encrypt)
-            {
-                var iv         = RandomNumberGenerator.GetBytes(12);  // 96-bit nonce
-                var ciphertext = new byte[request.InputData.Length];
-                var tag        = new byte[16];                         // 128-bit auth tag
+            keyBytes = retrievedKey;
 
-                using var aesGcm = new AesGcm(keyBytes, 16);
-                aesGcm.Encrypt(iv, request.InputData, ciphertext, tag);
-
-                // Append tag to ciphertext — matches Android Cipher GCM output layout.
-                var outputData = new byte[ciphertext.Length + tag.Length];
-                ciphertext.CopyTo(outputData, 0);
-                tag.CopyTo(outputData, ciphertext.Length);
-
-                return SecureAuthenticationResponse.Success(outputData, iv);
-            }
-            else
-            {
-                if (request.IV is null || request.IV.Length == 0)
-                    return SecureAuthenticationResponse.Failure("IV is required for AES-GCM decryption.");
-
-                if (request.InputData.Length < 16)
-                    return SecureAuthenticationResponse.Failure("Input data is too short for AES-GCM decryption.");
-
-                // Split ciphertext and 16-byte tag
-                var ciphertext = request.InputData[..^16];
-                var tag        = request.InputData[^16..];
-                var plaintext  = new byte[ciphertext.Length];
-
-                using var aesGcm = new AesGcm(keyBytes, 16);
-                aesGcm.Decrypt(request.IV, ciphertext, tag, plaintext);
-
-                return SecureAuthenticationResponse.Success(plaintext);
-            }
+            return encrypt
+                ? AesGcmHelpers.Encrypt(keyBytes, request.InputData)
+                : AesGcmHelpers.Decrypt(keyBytes, request.InputData, request.IV);
         }
         catch (Exception ex)
         {
@@ -139,6 +116,8 @@ internal static class LAContextCryptoHelpers
         }
         finally
         {
+            if (keyBytes is not null)
+                Array.Clear(keyBytes, 0, keyBytes.Length);
             context.Dispose();
         }
     }
