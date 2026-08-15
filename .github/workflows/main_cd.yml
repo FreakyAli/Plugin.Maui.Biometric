@@ -47,6 +47,7 @@ jobs:
           dotnet pack Plugin.Maui.Biometric\Plugin.Maui.Biometric\Plugin.Maui.Biometric.csproj -c Release -p:PackageVersion=${{ steps.get_version.outputs.version_without_v }}
 
       - name: NuGet Trusted Publishing login
+        id: login
         uses: nuget/login@v1
         with:
           user: FreakyAli
@@ -63,4 +64,4 @@ jobs:
             throw "Expected exactly one matching .nupkg, found $($nupkgs.Count)"
           }
 
-          dotnet nuget push $nupkgs[0].FullName -s https://api.nuget.org/v3/index.json
+          dotnet nuget push $nupkgs[0].FullName -s https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
