@@ -10,13 +10,17 @@ jobs:
   release-nuget:
     runs-on: windows-latest
 
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-          
+
       - name: Restore
         run: dotnet workload restore Plugin.Maui.Biometric\Plugin.Maui.Biometric.sln
 
@@ -42,6 +46,11 @@ jobs:
         run: |
           dotnet pack Plugin.Maui.Biometric\Plugin.Maui.Biometric\Plugin.Maui.Biometric.csproj -c Release -p:PackageVersion=${{ steps.get_version.outputs.version_without_v }}
 
+      - name: NuGet Trusted Publishing login
+        uses: nuget/login@v1
+        with:
+          user: FreakyAli
+
       - name: Push NuGet package
         shell: pwsh
         run: |
@@ -54,4 +63,4 @@ jobs:
             throw "Expected exactly one matching .nupkg, found $($nupkgs.Count)"
           }
 
-          dotnet nuget push $nupkgs[0].FullName -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+          dotnet nuget push $nupkgs[0].FullName -s https://api.nuget.org/v3/index.json
