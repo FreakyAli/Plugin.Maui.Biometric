@@ -59,7 +59,7 @@ internal partial class BiometricService
             {
                 Status = BiometricResponseStatus.Failure,
                 AuthenticationType = AuthenticationType.WindowsHello,
-                ErrorMsg = ex.Message + ex.StackTrace
+                ErrorMsg = "Windows Hello authentication failed."
             };
         }
     }

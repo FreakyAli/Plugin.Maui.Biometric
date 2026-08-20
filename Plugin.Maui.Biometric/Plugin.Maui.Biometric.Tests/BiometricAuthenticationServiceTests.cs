@@ -37,7 +37,7 @@ public class BiometricAuthenticationServiceTests
     [Fact]
     public async Task Default_GetAuthenticationStatusAsync_Throws_OnUnsupportedPlatform()
     {
-        await Assert.ThrowsAsync<NotImplementedException>(
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
             () => BiometricAuthenticationService.Default.GetAuthenticationStatusAsync());
     }
 
@@ -46,14 +46,14 @@ public class BiometricAuthenticationServiceTests
     {
         var request = new AuthenticationRequest { Title = "Test" };
 
-        await Assert.ThrowsAsync<NotImplementedException>(
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
             () => BiometricAuthenticationService.Default.AuthenticateAsync(request, CancellationToken.None));
     }
 
     [Fact]
     public async Task Default_GetEnrolledBiometricTypesAsync_Throws_OnUnsupportedPlatform()
     {
-        await Assert.ThrowsAsync<NotImplementedException>(
+        await Assert.ThrowsAsync<PlatformNotSupportedException>(
             () => BiometricAuthenticationService.Default.GetEnrolledBiometricTypesAsync());
     }
 }

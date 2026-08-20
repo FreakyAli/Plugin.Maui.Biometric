@@ -1,6 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace Plugin.Maui.Biometric;
 
-namespace Plugin.Maui.Biometric;
 public static class BiometricAuthenticationService
 {
     private static readonly Lazy<IBiometric> defaultImpl =

@@ -10,6 +10,8 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<!-- Suppress experimental warning for ISecureBiometric preview API used in sample app -->
+		<NoWarn>$(NoWarn);BIOCRYPTO001</NoWarn>
 
 		<!-- Display name -->
 		<ApplicationTitle>Samples</ApplicationTitle>

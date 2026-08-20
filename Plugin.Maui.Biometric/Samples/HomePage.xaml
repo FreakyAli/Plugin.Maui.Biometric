@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Samples.HomePage"
+             Title="Biometric Samples">
+
+    <VerticalStackLayout
+        Padding="30"
+        Spacing="20"
+        VerticalOptions="Center">
+
+        <Image
+            Source="dotnet_bot.png"
+            HeightRequest="185"
+            Aspect="AspectFit"
+            SemanticProperties.Description="dot net bot in a hovercraft number nine" />
+
+        <Label
+            Text="Plugin.Maui.Biometric"
+            Style="{StaticResource Headline}"
+            SemanticProperties.HeadingLevel="Level1"
+            HorizontalOptions="Center" />
+
+        <Label
+            Text="Choose a sample to explore"
+            Style="{StaticResource SubHeadline}"
+            SemanticProperties.HeadingLevel="Level2"
+            HorizontalOptions="Center" />
+
+        <Button
+            Text="Biometric Service"
+            SemanticProperties.Hint="Navigate to biometric authentication sample"
+            Clicked="OnBiometricClicked"
+            HorizontalOptions="Fill" />
+
+        <Button
+            Text="Secure Biometric Service"
+            SemanticProperties.Hint="Navigate to secure biometric crypto sample"
+            Clicked="OnSecureBiometricClicked"
+            HorizontalOptions="Fill" />
+
+    </VerticalStackLayout>
+
+</ContentPage>

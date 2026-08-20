@@ -1,0 +1,306 @@
+using Java.Security;
+using Javax.Crypto;
+using Android.Security.Keystore;
+
+namespace Plugin.Maui.Biometric;
+
+internal class AndroidKeyStoreHelpers
+{
+    internal static readonly string KeyStoreName = "AndroidKeyStore";
+
+    internal static KeyOperationResult TryCreateKeyWithSecurityLevel
+                    (string keyId, string keyAlgorithm, KeyStorePurpose purpose,
+                    CryptoKeyOptions options, bool preferStrongBox)
+    {
+        try
+        {
+            using var keyGen = KeyGenerator.GetInstance(keyAlgorithm, KeyStoreName);
+            if (keyGen == null)
+            {
+                return KeyOperationResult.Failure($"Failed to create key generator for algorithm {keyAlgorithm}.");
+            }
+
+            var keyGenSpecBuilder = new KeyGenParameterSpec.Builder(keyId, purpose)
+                .SetKeySize(options.KeySize)
+                .SetUserAuthenticationRequired(options.RequireUserAuthentication);
+
+            // Biometric-specific configuration  
+            if (options.RequireUserAuthentication)
+            {
+                // Per-operation auth this will accept BOTH biometric AND device credential 
+                // (PIN/password/pattern)                                                
+                // There's no way to restrict to biometric-only in the KeyStore on API 26-29
+                if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
+                {
+#pragma warning disable CA1422
+                    keyGenSpecBuilder.SetUserAuthenticationValidityDurationSeconds(-1);
+#pragma warning restore CA1422
+                }
+            }
+
+            // Algorithm-specific configuration
+            if (options.Algorithm == KeyAlgorithm.Aes)
+            {
+                keyGenSpecBuilder
+                    .SetBlockModes(MapBlockMode(options.BlockMode))
+                    .SetEncryptionPaddings(MapPadding(options.Padding));
+            }
+            else if (options.Algorithm == KeyAlgorithm.Rsa)
+            {
+                keyGenSpecBuilder
+                    .SetEncryptionPaddings(MapPadding(options.Padding))
+                    .SetDigests(MapDigest(options.Digest));
+            }
+            else if (options.Algorithm == KeyAlgorithm.Ec)
+            {
+                keyGenSpecBuilder.SetDigests(MapDigest(options.Digest));
+            }
+
+            // Try StrongBox if requested and supported (Android 9+)
+            if (preferStrongBox && OperatingSystem.IsAndroidVersionAtLeast(28))
+            {
+                keyGenSpecBuilder.SetIsStrongBoxBacked(true);
+            }
+
+            var keyGenSpec = keyGenSpecBuilder.Build();
+            keyGen.Init(keyGenSpec);
+
+            var secretKey = keyGen.GenerateKey();
+
+            // Determine actual security level achieved
+            var securityLevelName = GetActualSecurityLevel(keyId, preferStrongBox);
+
+            var securityMessage = preferStrongBox
+                ? $"Key created with {securityLevelName} security (StrongBox {(securityLevelName == "StrongBox" ? "achieved" : "fell back")})"
+                : $"Key created with {securityLevelName} security";
+
+            return KeyOperationResult.Success(securityLevelName, securityMessage);
+        }
+        catch (ProviderException ex) when (ex.Message?.Contains("StrongBox") == true)
+        {
+            if (preferStrongBox)
+            {
+                // StrongBox failed, caller should retry without it
+                return KeyOperationResult.Failure($"StrongBox unavailable: {ex.GetFullMessage()}");
+            }
+            return KeyOperationResult.Failure($"Key creation failed: {ex.GetFullMessage()}");
+        }
+        catch (InvalidAlgorithmParameterException ex)
+        {
+            return KeyOperationResult.Failure($"Invalid parameters for '{keyAlgorithm}': {ex.GetFullMessage()}");
+        }
+        catch (KeyStoreException ex)
+        {
+            return KeyOperationResult.Failure($"KeyStore error while checking key '{keyId}': {ex.GetFullMessage()}");
+        }
+        catch (Exception ex)
+        {
+            return KeyOperationResult.Failure($"Unexpected error: {ex.GetFullMessage()}");
+        }
+    }
+
+    /// <summary>
+    /// Creates an RSA or EC key pair using <see cref="KeyPairGenerator"/>.
+    /// Mirrors <see cref="TryCreateKeyWithSecurityLevel"/> for symmetric keys.
+    /// </summary>
+    internal static KeyOperationResult TryCreateKeyPairWithSecurityLevel
+                    (string keyId, string keyAlgorithm, KeyStorePurpose purpose,
+                    CryptoKeyOptions options, bool preferStrongBox)
+    {
+        try
+        {
+            using var keyPairGen = KeyPairGenerator.GetInstance(keyAlgorithm, KeyStoreName);
+            if (keyPairGen == null)
+            {
+                return KeyOperationResult.Failure($"Failed to create key pair generator for algorithm {keyAlgorithm}.");
+            }
+
+            var keyGenSpecBuilder = new KeyGenParameterSpec.Builder(keyId, purpose)
+                .SetKeySize(options.KeySize)
+                .SetUserAuthenticationRequired(options.RequireUserAuthentication);
+
+            // Biometric-specific configuration
+            if (options.RequireUserAuthentication)
+            {
+                if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
+                {
+#pragma warning disable CA1422
+                    keyGenSpecBuilder.SetUserAuthenticationValidityDurationSeconds(-1);
+#pragma warning restore CA1422
+                }
+            }
+
+            // Algorithm-specific configuration
+            if (options.Algorithm == KeyAlgorithm.Rsa)
+            {
+                keyGenSpecBuilder
+                    .SetEncryptionPaddings(MapPadding(options.Padding))
+                    .SetSignaturePaddings(KeyProperties.SignaturePaddingRsaPkcs1)
+                    .SetDigests(MapDigest(options.Digest));
+            }
+            else if (options.Algorithm == KeyAlgorithm.Ec)
+            {
+                keyGenSpecBuilder.SetDigests(MapDigest(options.Digest));
+            }
+
+            // Try StrongBox if requested and supported (Android 9+)
+            if (preferStrongBox && OperatingSystem.IsAndroidVersionAtLeast(28))
+            {
+                keyGenSpecBuilder.SetIsStrongBoxBacked(true);
+            }
+
+            var keyGenSpec = keyGenSpecBuilder.Build();
+            keyPairGen.Initialize(keyGenSpec);
+
+            var keyPair = keyPairGen.GenerateKeyPair();
+
+            // Determine actual security level achieved
+            var securityLevelName = GetActualSecurityLevel(keyId, preferStrongBox);
+
+            var securityMessage = preferStrongBox
+                ? $"Key pair created with {securityLevelName} security (StrongBox {(securityLevelName == "StrongBox" ? "achieved" : "fell back")})"
+                : $"Key pair created with {securityLevelName} security";
+
+            return KeyOperationResult.Success(securityLevelName, securityMessage);
+        }
+        catch (ProviderException ex) when (ex.Message?.Contains("StrongBox") == true)
+        {
+            if (preferStrongBox)
+            {
+                // StrongBox failed, caller should retry without it
+                return KeyOperationResult.Failure($"StrongBox unavailable: {ex.GetFullMessage()}");
+            }
+            return KeyOperationResult.Failure($"Key pair creation failed: {ex.GetFullMessage()}");
+        }
+        catch (InvalidAlgorithmParameterException ex)
+        {
+            return KeyOperationResult.Failure($"Invalid parameters for '{keyAlgorithm}': {ex.GetFullMessage()}");
+        }
+        catch (KeyStoreException ex)
+        {
+            return KeyOperationResult.Failure($"KeyStore error while creating key pair '{keyId}': {ex.GetFullMessage()}");
+        }
+        catch (Exception ex)
+        {
+            return KeyOperationResult.Failure($"Unexpected error: {ex.GetFullMessage()}");
+        }
+    }
+
+    internal static string GetVersionBasedSecurityLevel(IKey? key, bool strongBoxAttempted)
+    {
+        KeyInfo? keyInfo = null;
+
+        if (key is ISecretKey secretKey)
+        {
+            using var keyFactory = SecretKeyFactory.GetInstance(secretKey.Algorithm, KeyStoreName);
+            using var keySpec = keyFactory?.GetKeySpec(secretKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
+            keyInfo = keySpec as KeyInfo;
+        }
+        else if (key is IPrivateKey privateKey)
+        {
+            using var keyFactory = KeyFactory.GetInstance(privateKey.Algorithm, KeyStoreName);
+            using var keySpec = keyFactory?.GetKeySpec(privateKey, Java.Lang.Class.FromType(typeof(KeyInfo)));
+            keyInfo = keySpec as KeyInfo;
+        }
+
+        if (keyInfo is null)
+            return "Unknown";
+
+        if (OperatingSystem.IsAndroidVersionAtLeast(31))
+        {
+            return keyInfo.SecurityLevel switch
+            {
+                (int)KeyStoreSecurityLevel.Strongbox => "StrongBox",
+                (int)KeyStoreSecurityLevel.TrustedEnvironment => "TEE",
+                (int)KeyStoreSecurityLevel.Software => "Software",
+                _ => "Software"
+            };
+        }
+        else
+        {
+            var isHardwareBacked = keyInfo.IsInsideSecureHardware;
+            if (strongBoxAttempted && isHardwareBacked)
+                return "Hardware-backed (likely StrongBox)";
+            else if (isHardwareBacked)
+                return "Hardware-backed (TEE/StrongBox)";
+            else
+                return "Software";
+        }
+    }
+
+    internal static string GetActualSecurityLevel(string keyId, bool strongBoxAttempted)
+    {
+        try
+        {
+            using var keyStore = KeyStore.GetInstance(KeyStoreName);
+            keyStore?.Load(null);
+            var key = keyStore?.GetKey(keyId, null);
+            return GetVersionBasedSecurityLevel(key, strongBoxAttempted);
+        }
+        catch
+        {
+            return "Unknown";
+        }
+    }
+
+    internal static string MapKeyAlgorithm(KeyAlgorithm algorithm)
+    => algorithm switch
+    {
+        KeyAlgorithm.Aes => KeyProperties.KeyAlgorithmAes,
+        KeyAlgorithm.Rsa => KeyProperties.KeyAlgorithmRsa,
+        KeyAlgorithm.Ec => KeyProperties.KeyAlgorithmEc,
+        _ => KeyProperties.KeyAlgorithmAes // Default to AES
+    };
+
+    internal static string MapTransformation(string keyAlgorithm, string blockMode, string encryptionPadding)
+    => $"{keyAlgorithm}/{blockMode}/{encryptionPadding}";
+
+    internal static KeyStorePurpose MapPurpose(CryptoOperation operation)
+    {
+        KeyStorePurpose purpose = 0;
+
+        if (operation.HasFlag(CryptoOperation.Encrypt))
+            purpose |= KeyStorePurpose.Encrypt;
+
+        if (operation.HasFlag(CryptoOperation.Decrypt))
+            purpose |= KeyStorePurpose.Decrypt;
+
+        if (operation.HasFlag(CryptoOperation.Sign))
+            purpose |= KeyStorePurpose.Sign;
+
+        if (operation.HasFlag(CryptoOperation.Verify))
+            purpose |= KeyStorePurpose.Verify;
+
+        return purpose;
+    }
+
+    internal static string MapBlockMode(BlockMode blockMode) =>
+        blockMode switch
+        {
+            BlockMode.Cbc => KeyProperties.BlockModeCbc,
+            BlockMode.Gcm => KeyProperties.BlockModeGcm,
+            BlockMode.Ctr => KeyProperties.BlockModeCtr,
+            _ => KeyProperties.BlockModeGcm // Default
+        };
+
+    internal static string MapPadding(Padding padding) =>
+        padding switch
+        {
+            Padding.None => KeyProperties.EncryptionPaddingNone,
+            Padding.Pkcs7 => KeyProperties.EncryptionPaddingPkcs7,
+            Padding.Pkcs1 => KeyProperties.EncryptionPaddingRsaPkcs1,
+            Padding.Oaep => KeyProperties.EncryptionPaddingRsaOaep,
+            _ => KeyProperties.EncryptionPaddingNone
+        };
+
+    internal static string MapDigest(Digest digest) =>
+        digest switch
+        {
+            Digest.Sha1 => KeyProperties.DigestSha1,
+            Digest.Sha224 => KeyProperties.DigestSha224,
+            Digest.Sha256 => KeyProperties.DigestSha256,
+            Digest.Sha384 => KeyProperties.DigestSha384,
+            Digest.Sha512 => KeyProperties.DigestSha512,
+            _ => KeyProperties.DigestSha256 // default
+        };
+}
